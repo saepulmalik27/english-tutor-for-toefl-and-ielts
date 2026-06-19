@@ -1,0 +1,106 @@
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id                String         @id @default(uuid())
+  username          String         @unique
+  email             String         @unique
+  password          String         // Hashed password
+  xp                Int            @default(0)
+  streak            Int            @default(0)
+  lastActive        DateTime?
+  currentIeltsBand  Float          @default(4.0) // Estimated IELTS band (4.0 to 9.0)
+  currentToeflScore Int            @default(30)  // Estimated TOEFL score (30 to 120)
+  isOnboarded       Boolean        @default(false)
+  createdAt         DateTime       @default(now())
+  
+  // Relations
+  journals          Journal[]
+  progress          UserProgress[]
+  dailyMetrics      DailyMetric[]
+}
+
+model DailyMetric {
+  id          String   @id @default(uuid())
+  userId      String
+  date        String   // YYYY-MM-DD format for easy daily snapshots
+  ieltsBand   Float
+  toeflScore  Int
+  readingScore Float    // Component reading metric
+  writingScore Float    // Component writing metric
+  xpGained    Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date])
+}
+
+model Article {
+  id          String         @id @default(uuid())
+  title       String
+  content     String         // Full English article text
+  difficulty  String         // 'Basic', 'Intermediate', 'Advanced'
+  description String         // Indonesian description/introduction
+  translation String         // Full Indonesian translation
+  vocabJson   String         // JSON dictionary mappings of English words to Indonesian meanings (e.g. {"commence": "memulai"})
+  createdAt   DateTime       @default(now())
+  
+  questions   Question[]
+  progress    UserProgress[]
+}
+
+model Question {
+  id          String   @id @default(uuid())
+  articleId   String
+  question    String   // The English comprehension question
+  optionsJson String   // JSON string array of options, e.g. ["A", "B", "C", "D"]
+  answer      String   // The correct option (exact text or index)
+  explanation String   // Explanation of correct answer in Indonesian
+  
+  article     Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
+}
+
+model Journal {
+  id          String   @id @default(uuid())
+  userId      String
+  prompt      String   // Writing prompt in English & Indonesian
+  userText    String   // User's submitted English text
+  feedback    String   // Markdown feedback from the AI/Tutor in Indonesian
+  score       Int      // Writing score (0-100)
+  ieltsBand   Float    // Estimated IELTS Writing Band (e.g., 5.5)
+  toeflScore  Int      // Estimated TOEFL Writing Score (e.g., 20)
+  createdAt   DateTime @default(now())
+  
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model UserProgress {
+  id          String   @id @default(uuid())
+  userId      String
+  articleId   String
+  completed   Boolean  @default(false)
+  quizScore   Int?     // Score in % (0-100)
+  createdAt   DateTime @default(now())
+  
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  article     Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, articleId])
+}
+
+model Lesson {
+  id          String   @id @default(uuid())
+  title       String   // Title in Indonesian (e.g., "Memahami Present Continuous Tense")
+  category    String   // "Grammar", "Vocabulary", "Reading Tips"
+  difficulty  String   // "Basic", "Intermediate", "Advanced"
+  content     String   // Markdown content of the lesson in Indonesian
+  summary     String   // Short summary
+  createdAt   DateTime @default(now())
+}

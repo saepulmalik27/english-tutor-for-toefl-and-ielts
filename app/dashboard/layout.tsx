@@ -1,28 +1,21 @@
-import { getSessionUser } from "@/lib/auth";
-import { logoutAction } from "@/app/actions/authActions";
+import { getLearner } from "@/lib/learner";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { 
   SparklesIcon, 
   FlameIcon, 
-  TrophyIcon, 
   BookOpenIcon, 
   PenToolIcon, 
   LayoutDashboardIcon, 
-  GraduationCapIcon,
-  LogOutIcon 
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
+  GraduationCapIcon
+  } from "lucide-react";
 
 export default async function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const user = await getSessionUser();
-  if (!user) {
-    redirect("/login");
-  }
+  const user = await getLearner();
   if (!user.isOnboarded) {
     redirect("/onboarding");
   }
@@ -82,12 +75,6 @@ export default async function DashboardLayout({
               <span>{user.streak} Hari</span>
             </div>
 
-            {/* XP */}
-            <div className="flex items-center gap-1 bg-emerald-950/30 border border-emerald-900/50 px-2.5 py-1 rounded-full text-emerald-400 text-xs font-semibold" title="XP Points">
-              <TrophyIcon className="size-3.5 text-emerald-400" />
-              <span>{user.xp} XP</span>
-            </div>
-
             {/* IELTS / TOEFL HUD Indicator */}
             <div className="hidden lg:flex items-center gap-2 bg-slate-900 border border-slate-800 px-3 py-1 rounded-full text-xs text-slate-300">
               <span className="font-semibold text-violet-400">IELTS: {user.currentIeltsBand.toFixed(1)}</span>
@@ -95,12 +82,6 @@ export default async function DashboardLayout({
               <span className="font-semibold text-emerald-400">TOEFL: {user.currentToeflScore}</span>
             </div>
 
-            {/* Logout Action */}
-            <form action={logoutAction}>
-              <Button type="submit" variant="ghost" size="icon" className="text-slate-400 hover:text-white hover:bg-slate-900" title="Keluar">
-                <LogOutIcon className="size-4" />
-              </Button>
-            </form>
           </div>
         </div>
       </header>

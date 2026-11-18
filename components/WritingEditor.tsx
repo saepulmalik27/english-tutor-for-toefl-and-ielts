@@ -1,25 +1,17 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { submitJournalAction } from "@/app/actions/tutorActions";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Input } from "@/components/ui/input";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { 
   PenToolIcon, 
   SparklesIcon, 
-  HelpCircleIcon, 
-  HistoryIcon, 
-  CheckCircle2Icon, 
-  ArrowRightIcon, 
-  KeyIcon,
-  SettingsIcon
-} from "lucide-react";
+  HistoryIcon 
+  } from "lucide-react";
 import { toast } from "sonner";
-import { PROVIDERS } from "@/lib/ai";
 
 interface JournalEntry {
   id: string;
@@ -66,10 +58,6 @@ const PRESET_PROMPTS = [
 export default function WritingEditor({ initialHistory }: WritingEditorProps) {
   const [selectedPrompt, setSelectedPrompt] = useState(PRESET_PROMPTS[0]);
   const [userText, setUserText] = useState("");
-  const [aiProvider, setAiProvider] = useState("gemini");
-  const [aiModelName, setAiModelName] = useState("gemini-2.5-flash");
-  const [aiApiKey, setAiApiKey] = useState("");
-  const [aiBaseUrl, setAiBaseUrl] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [history, setHistory] = useState<JournalEntry[]>(initialHistory);
   const [activeFeedback, setActiveFeedback] = useState<{
@@ -77,43 +65,7 @@ export default function WritingEditor({ initialHistory }: WritingEditorProps) {
     feedback: string;
     ieltsBand: number;
     toeflScore: number;
-    xpGained: number;
   } | null>(null);
-
-  // Load saved AI configurations from localStorage on component mount
-  useEffect(() => {
-    const oldKey = localStorage.getItem("english_tutor_gemini_api_key");
-    const savedProvider = localStorage.getItem("english_tutor_ai_provider") || "gemini";
-    const savedApiKey = localStorage.getItem("english_tutor_ai_api_key") || (savedProvider === "gemini" ? oldKey || "" : "");
-    const savedModelName = localStorage.getItem("english_tutor_ai_model_name") || "gemini-2.5-flash";
-    const savedBaseUrl = localStorage.getItem("english_tutor_ai_base_url") || "";
-
-    setAiProvider(savedProvider);
-    setAiApiKey(savedApiKey);
-    setAiModelName(savedModelName);
-    setAiBaseUrl(savedBaseUrl);
-  }, []);
-
-  const updateAiSetting = (key: string, value: string) => {
-    localStorage.setItem(key, value);
-    if (key === "english_tutor_ai_provider") {
-      setAiProvider(value);
-      const meta = PROVIDERS.find(p => p.id === value);
-      if (meta) {
-        setAiModelName(meta.defaultModel);
-        localStorage.setItem("english_tutor_ai_model_name", meta.defaultModel);
-        const defUrl = meta.defaultBaseUrl || "";
-        setAiBaseUrl(defUrl);
-        localStorage.setItem("english_tutor_ai_base_url", defUrl);
-      }
-    } else if (key === "english_tutor_ai_model_name") {
-      setAiModelName(value);
-    } else if (key === "english_tutor_ai_api_key") {
-      setAiApiKey(value);
-    } else if (key === "english_tutor_ai_base_url") {
-      setAiBaseUrl(value);
-    }
-  };
 
   // Word count calculator
   const getWordCount = () => {
@@ -134,14 +86,6 @@ export default function WritingEditor({ initialHistory }: WritingEditorProps) {
       const formData = new FormData();
       formData.append("prompt", selectedPrompt.text);
       formData.append("userText", userText);
-      formData.append("aiProvider", aiProvider);
-      formData.append("aiModelName", aiModelName);
-      if (aiApiKey.trim()) {
-        formData.append("aiApiKey", aiApiKey.trim());
-      }
-      if (aiBaseUrl.trim()) {
-        formData.append("aiBaseUrl", aiBaseUrl.trim());
-      }
 
       const res = await submitJournalAction(formData);
       if (res.success && res.feedback) {
@@ -150,7 +94,6 @@ export default function WritingEditor({ initialHistory }: WritingEditorProps) {
           feedback: res.feedback,
           ieltsBand: res.ieltsBand!,
           toeflScore: res.toeflScore!,
-          xpGained: res.xpGained!
         });
 
         // Prepend new entry locally to history log
@@ -169,7 +112,7 @@ export default function WritingEditor({ initialHistory }: WritingEditorProps) {
         // Reset editor
         setUserText("");
         
-        toast.success(`Berhasil! Jurnal terkirim. +${res.xpGained} XP!`);
+        toast.success("Berhasil! Jurnal terkirim.");
       } else {
         alert(res.error || "Gagal mengirim jurnal.");
       }
@@ -285,80 +228,6 @@ export default function WritingEditor({ initialHistory }: WritingEditorProps) {
                 </div>
               </div>
 
-              {/* AI Provider Settings box */}
-              <details className="group border border-slate-800/80 rounded-xl bg-slate-950/40 overflow-hidden">
-                <summary className="cursor-pointer p-3 text-xs font-semibold text-slate-400 hover:text-white flex items-center gap-2 select-none">
-                  <SettingsIcon className="size-3.5 text-violet-400" />
-                  <span>Pengaturan AI Tutor (Pilih Provider & Model AI)</span>
-                  <span className="ml-auto transition group-open:rotate-180 text-[10px]">▼</span>
-                </summary>
-                <div className="p-4 border-t border-slate-800 space-y-4 bg-slate-950/80">
-                  <p className="text-[10px] text-slate-500 leading-relaxed">
-                    Tingkatkan kualitas koreksi dengan memilih penyedia AI pilihan Anda. Kunci API hanya disimpan secara lokal di browser Anda. Jika dibiarkan kosong, sistem akan beralih ke analisis gramatika offline bawaan.
-                  </p>
-                  
-                  {/* Select AI Provider */}
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Penyedia AI (AI Provider)</label>
-                    <select
-                      value={aiProvider}
-                      onChange={(e) => updateAiSetting("english_tutor_ai_provider", e.target.value)}
-                      className="w-full rounded-md border border-slate-800 bg-slate-955 p-2 text-xs text-white bg-slate-950 focus:border-violet-500 focus:outline-none"
-                    >
-                      {PROVIDERS.map((prov) => (
-                        <option key={prov.id} value={prov.id}>
-                          {prov.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  {/* API Key */}
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400">API Key</label>
-                    <Input
-                      type="password"
-                      value={aiApiKey}
-                      onChange={(e) => updateAiSetting("english_tutor_ai_api_key", e.target.value)}
-                      placeholder={PROVIDERS.find(p => p.id === aiProvider)?.placeholderApiKey || "Masukkan API Key"}
-                      className="border-slate-800 bg-slate-950 text-xs"
-                    />
-                    <p className="text-[9px] text-slate-500">
-                      {PROVIDERS.find(p => p.id === aiProvider)?.helperText}
-                    </p>
-                  </div>
-
-                  {/* Model Name */}
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Nama Model (Model Name)</label>
-                    <Input
-                      type="text"
-                      value={aiModelName}
-                      onChange={(e) => updateAiSetting("english_tutor_ai_model_name", e.target.value)}
-                      placeholder="Contoh: gemini-2.5-flash, gpt-4o-mini"
-                      className="border-slate-800 bg-slate-950 text-xs"
-                    />
-                  </div>
-
-                  {/* Base URL (only show for Custom, or if defaultBaseUrl exists) */}
-                  {(aiProvider === "custom" || PROVIDERS.find(p => p.id === aiProvider)?.defaultBaseUrl !== undefined) && (
-                    <div className="space-y-1">
-                      <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Base URL (API Endpoint)</label>
-                      <Input
-                        type="text"
-                        value={aiBaseUrl}
-                        onChange={(e) => updateAiSetting("english_tutor_ai_base_url", e.target.value)}
-                        placeholder="Contoh: https://api.deepseek.com/v1"
-                        className="border-slate-800 bg-slate-950 text-xs"
-                      />
-                      <p className="text-[9px] text-slate-500">
-                        Biarkan kosong untuk menggunakan URL bawaan penyedia.
-                      </p>
-                    </div>
-                  )}
-
-                </div>
-              </details>
 
             </CardContent>
             <CardFooter className="border-t border-slate-900/50 py-4">
@@ -411,11 +280,6 @@ export default function WritingEditor({ initialHistory }: WritingEditorProps) {
                 {renderFeedbackMarkdown(activeFeedback.feedback)}
               </div>
 
-              {/* XP Awarded badge */}
-              <div className="bg-gradient-to-r from-emerald-900/20 to-teal-900/20 border border-emerald-800/40 p-2.5 rounded-xl text-[11px] text-emerald-300 font-semibold flex items-center justify-center gap-1">
-                <CheckCircle2Icon className="size-3.5" />
-                <span>Umpan balik tersimpan! Dapatkan +{activeFeedback.xpGained} XP!</span>
-              </div>
 
             </CardContent>
           </Card>
@@ -445,7 +309,6 @@ export default function WritingEditor({ initialHistory }: WritingEditorProps) {
                       feedback: entry.feedback,
                       ieltsBand: entry.ieltsBand,
                       toeflScore: entry.toeflScore,
-                      xpGained: 0 // no new XP
                     });
                   }}
                   className="group cursor-pointer p-3 rounded-lg bg-slate-950 border border-slate-900 hover:border-slate-800 transition-all flex flex-col gap-2"

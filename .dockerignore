@@ -1,0 +1,11 @@
+node_modules
+.next
+.git
+.env*
+.scratch
+.agents
+.claude
+.hermes
+design-feedback
+prisma/dev.db
+*.md

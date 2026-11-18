@@ -10,7 +10,6 @@ interface HistoryData {
   toeflScore: number;
   readingScore: number;
   writingScore: number;
-  xp: number;
 }
 
 interface DashboardChartsProps {
@@ -20,7 +19,7 @@ interface DashboardChartsProps {
 export default function DashboardCharts({ historyData }: DashboardChartsProps) {
   // If no history data yet, show mock data to guide user
   const displayData = historyData.length > 0 ? historyData : [
-    { date: "Mulai", ieltsBand: 4.0, toeflScore: 30, readingScore: 40, writingScore: 40, xp: 0 },
+    { date: "Mulai", ieltsBand: 4.0, toeflScore: 30, readingScore: 40, writingScore: 40 },
   ];
 
   return (

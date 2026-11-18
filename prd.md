@@ -1,6 +1,6 @@
 # PRD v2: Zero-cost IELTS General Training Tutor
 
-Status: draft for Learner review (2026-11-18). Replaces PRD v1 (TOEFL/IELTS Academic, multi-user, 10-20-70 lessons), which is in git history.
+Status: approved by the Learner (2026-11-18). Replaces PRD v1 (TOEFL/IELTS Academic, multi-user, 10-20-70 lessons), which is in git history.
 
 Every decision here comes from the wayfinder map `.scratch/zero-cost-toefl-tutor/map.md`; the ticket behind each one is linked so the reasoning can be traced. Terms follow `GLOSSARY.md` (Learner, Target Exam, Skill, Error Pattern, Weakness Profile, Practice Session, Speaking Task, Feedback).
 
@@ -58,6 +58,7 @@ Always shown as a range, never a single number.
 - If Writing is the lowest section, Task 1 (20 min) replaces Reading on 2 days a week. Otherwise Writing is an optional extra twice a week (Task 1 one day, Task 2 another).
 - Review: at most 2 due Error Patterns per day, lowest retrievability first, 3 drills each. If none are due, the slot becomes extra practice for the lowest section. A backlog after missed days is drained 2 a day.
 - First 7 days: sessions rotate evenly through every Skill (including one Task 1 and one Task 2). Onboarding is a welcome screen plus microphone permission.
+- Streak counts a day with a completed session, in WIB (Asia/Jakarta), not a login (approved with this PRD; v1 counted logins in UTC).
 - UI: prototype variant A "step by step" (fixed order, one item per screen, immediate Feedback, band-range card, criterion cards, tappable transcript). The prototype code is kept on a throwaway branch, not in `main`.
 
 ### Question bank ([11](.scratch/zero-cost-toefl-tutor/issues/11-pipeline-bank-soal.md), [04](.scratch/zero-cost-toefl-tutor/issues/04-sumber-materi-crawler.md), [14](.scratch/zero-cost-toefl-tutor/issues/14-format-ielts-gt.md))
@@ -94,7 +95,7 @@ Always shown as a range, never a single number.
 
 - **Kept:** the reading component with click-to-translate and TTS, dashboard charts and streak (new scales), shadcn UI components.
 - **Changed:** reading question types to IELTS GT; writing to Task 1/Task 2 with IELTS criteria and Error Pattern tags; the generator into the nightly job; progress into band ranges per section.
-- **Removed:** signup and multi-user, XP, TOEFL and IELTS Academic scales, API keys in the browser, standalone lessons (their explanations live in Feedback per Error Pattern), `UserMemory`, duplicate content models, `prisma/seed.ts` content.
+- **Removed:** signup and multi-user, XP, TOEFL and IELTS Academic scales, API keys in the browser, the local heuristic grammar fallback (the Groq → Cloudflare fallback covers outages), standalone lessons (their explanations live in Feedback per Error Pattern), `UserMemory`, duplicate content models, `prisma/seed.ts` content.
 
 ### Dev tooling ([12](.scratch/zero-cost-toefl-tutor/issues/12-mcp-dev-tooling.md))
 
@@ -102,7 +103,7 @@ No project-level MCP. Context7 for library docs; the n8n MCP only while the SSH 
 
 ## Testing Decisions
 
-The v1 code has no tests. **Proposed** (the map lists the testing strategy as not yet specified, so this needs the Learner's approval): test through the pure seams where a wrong answer silently corrupts the Weakness Profile, with no LLM or network in unit tests.
+The v1 code has no tests. Approved with this PRD: test through the pure seams where a wrong answer silently corrupts the Weakness Profile, with no LLM or network in unit tests.
 
 - Band estimate: raw→band interpolation and the ranges, including the Task 2 weighting.
 - FSRS rating mapping: drill results and pattern occurrences → Again/Hard/Good, and card creation on first occurrence.
@@ -132,9 +133,6 @@ Carried from the map's "Not yet specified"; none blocks starting implementation.
 - **Band estimate details:** the exact Reading raw→band interpolation table and calibrating LLM scores against scored samples.
 - **Observability** beyond quota: error logs, uptime.
 - **PWA shape:** offline behaviour and a daily practice reminder.
-- **Testing strategy:** the proposal above, pending approval.
-- **Streak rule:** the audit found the streak only grows on login and uses UTC; proposed: count a day with a completed session, in WIB (Asia/Jakarta).
-- **Local heuristic grammar fallback:** the audit marked it a removal candidate, but no ticket decided it; proposed: remove, since the Groq → Cloudflare fallback covers outages.
 - **Long passages on a phone:** variant A's "text folded above the questions" was only tried with a short Section 1 text.
 
 ## Further Notes

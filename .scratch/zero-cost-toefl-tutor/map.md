@@ -38,6 +38,7 @@ Label: wayfinder:map
 - [Model Weakness Profile dan pengulangan](issues/09-model-personalisasi.md): taksonomi tetap ±35 Error Pattern bertag kriteria IELTS; satu kartu FSRS-6 (ts-fsrs v6) per pattern dengan drill baru; Weakness Profile dihitung dari data (UserMemory dibuang); band per section berupa rentang; sesi harian Speaking 15 + Reading 9 + review 6 menit, Writing menggantikan Reading 2×/minggu kalau terendah; tanpa diagnostic, 7 hari pertama berotasi. Membuka ticket alur Practice Session.
 - [MCP dan tooling untuk pengembangan](issues/12-mcp-dev-tooling.md): tanpa MCP level proyek; Context7 tetap; n8n MCP lewat tunnel SSH saja; database lewat psql/ssh, tanpa MCP; Cloudflare lewat `setup-domain.sh`; cek UI lewat built-in browser/Chrome; REA hanya mengamati UI familiarisation test IELTS computer-delivered dan Speak & Improve untuk prototype; Upstash tidak dipakai.
 - [Alur Practice Session dan Speaking Task](issues/10-alur-practice-session.md): prototype 3 variant, dipilih A "langkah demi langkah": urutan tetap Speaking → Reading → Review, satu item per layar, Feedback bahasa Indonesia langsung setelah setiap jawaban (rentang band, kartu per kriteria, transkrip dengan kesalahan yang bisa diketuk). Mode ujian dan hub bebas urutan tidak dipilih.
+- [Susun prd.md v2](issues/13-susun-prd-v2.md): `prd.md` v2 disetujui Learner; ikut diputuskan strategi unit test di seam murni, streak per sesi selesai dalam WIB, dan fallback grammar heuristik dibuang. **Map selesai**; berikutnya `/to-tickets`.
 
 ## Not yet specified
 
@@ -46,7 +47,6 @@ Label: wayfinder:map
 - Tipe tugas IELTS GT yang belum punya tempat di aplikasi: Writing Task 1 surat (register sesuai penerima), Reading GT Section 1–2 (teks praktis/pekerjaan), TFNG, matching headings, completion berbatas kata, dan Speaking Part 2 (1 menit persiapan, bicara 2 menit).
 - Skor pronunciation per kata/fonem dan voice chat real-time dengan AI (ditunda dari MVP speaking). **Prioritas naik:** pronunciation = 25% band Speaking, jadi tanpa penilaiannya band Speaking 7 tidak bisa diklaim.
 - Observabilitas di luar kuota (log error, uptime). Backup dan sisa kuota sudah diputuskan di [Arsitektur dan stack 0-cost](issues/08-arsitektur-stack-0-cost.md).
-- Strategi test: aplikasi lama tanpa test sama sekali; seam mana yang diuji (penilaian kuis, pemetaan band, penyusun Practice Session).
 - Bentuk PWA: offline, notifikasi pengingat latihan harian.
 
 ## Out of scope

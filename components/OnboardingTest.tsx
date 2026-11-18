@@ -1,28 +1,21 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { submitOnboardingAction } from "@/app/actions/onboardingAction";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";
-import { Badge } from "@/components/ui/badge";
 import { 
-  SparklesIcon, 
   BookOpenIcon, 
   PenToolIcon, 
-  HelpCircleIcon, 
   ArrowRightIcon, 
   ArrowLeftIcon, 
   RocketIcon,
-  CheckCircle2Icon,
-  FlameIcon,
-  SettingsIcon
-} from "lucide-react";
+  CheckCircle2Icon
+  } from "lucide-react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-import { PROVIDERS } from "@/lib/ai";
 
 export default function OnboardingTest() {
   const router = useRouter();
@@ -33,10 +26,6 @@ export default function OnboardingTest() {
   const [q2, setQ2] = useState("");
   const [q3, setQ3] = useState("");
   const [essay, setEssay] = useState("");
-  const [aiProvider, setAiProvider] = useState("gemini");
-  const [aiModelName, setAiModelName] = useState("gemini-2.5-flash");
-  const [aiApiKey, setAiApiKey] = useState("");
-  const [aiBaseUrl, setAiBaseUrl] = useState("");
   const [targetIeltsBand, setTargetIeltsBand] = useState(6.5);
   const [targetToeflScore, setTargetToeflScore] = useState(80);
   
@@ -47,43 +36,7 @@ export default function OnboardingTest() {
     ieltsBand: number;
     toeflScore: number;
     level: string;
-    xpGained: number;
   } | null>(null);
-
-  // Load saved AI configurations from localStorage on component mount
-  useEffect(() => {
-    const oldKey = localStorage.getItem("english_tutor_gemini_api_key");
-    const savedProvider = localStorage.getItem("english_tutor_ai_provider") || "gemini";
-    const savedApiKey = localStorage.getItem("english_tutor_ai_api_key") || (savedProvider === "gemini" ? oldKey || "" : "");
-    const savedModelName = localStorage.getItem("english_tutor_ai_model_name") || "gemini-2.5-flash";
-    const savedBaseUrl = localStorage.getItem("english_tutor_ai_base_url") || "";
-
-    setAiProvider(savedProvider);
-    setAiApiKey(savedApiKey);
-    setAiModelName(savedModelName);
-    setAiBaseUrl(savedBaseUrl);
-  }, []);
-
-  const updateAiSetting = (key: string, value: string) => {
-    localStorage.setItem(key, value);
-    if (key === "english_tutor_ai_provider") {
-      setAiProvider(value);
-      const meta = PROVIDERS.find(p => p.id === value);
-      if (meta) {
-        setAiModelName(meta.defaultModel);
-        localStorage.setItem("english_tutor_ai_model_name", meta.defaultModel);
-        const defUrl = meta.defaultBaseUrl || "";
-        setAiBaseUrl(defUrl);
-        localStorage.setItem("english_tutor_ai_base_url", defUrl);
-      }
-    } else if (key === "english_tutor_ai_model_name") {
-      setAiModelName(value);
-    } else if (key === "english_tutor_ai_api_key") {
-      setAiApiKey(value);
-    } else if (key === "english_tutor_ai_base_url") {
-      setAiBaseUrl(value);
-    }
-  };
 
   const getWordCount = () => {
     const cleanText = essay.trim();
@@ -109,10 +62,6 @@ export default function OnboardingTest() {
         q2,
         q3,
         essay,
-        aiProvider,
-        aiModelName,
-        aiApiKey: aiApiKey.trim(),
-        aiBaseUrl: aiBaseUrl.trim(),
         targetIeltsBand: Number(targetIeltsBand) || 6.5,
         targetToeflScore: Number(targetToeflScore) || 80
       });
@@ -122,7 +71,6 @@ export default function OnboardingTest() {
           ieltsBand: response.ieltsBand,
           toeflScore: response.toeflScore!,
           level: response.level!,
-          xpGained: response.xpGained!
         });
         setStep(5); // Show results screen
         toast.success("Tes Onboarding selesai!");
@@ -179,7 +127,6 @@ export default function OnboardingTest() {
                 <ul className="space-y-2 text-xs text-slate-400 pl-4 list-disc">
                   <li>**Bagian 1: Membaca (Reading)** - Menjawab 3 kuis pilihan ganda singkat.</li>
                   <li>**Bagian 2: Menulis (Writing)** - Menulis perkenalan singkat dalam bahasa Inggris (min. 10 kata).</li>
-                  <li>**Bonus**: Menyelesaikan pre-test memberikan **+50 XP** langsung untuk level akun Anda!</li>
                 </ul>
               </div>
 
@@ -224,76 +171,6 @@ export default function OnboardingTest() {
                 </div>
               </div>
 
-              {/* AI Tutor settings block */}
-              <div className="space-y-4 pt-4 border-t border-slate-800">
-                <label className="text-xs font-black uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
-                  <SettingsIcon className="size-4 text-violet-400" />
-                  <span>Pengaturan Provider AI Tutor (Opsional)</span>
-                </label>
-                <p className="text-[10px] text-slate-500 leading-relaxed">
-                  Materi pre-test dinilai menggunakan tutor AI pilihan Anda. Kunci Anda aman dan hanya disimpan secara lokal di browser Anda. Jika kosong, sistem menggunakan analisis offline instan.
-                </p>
-
-                {/* Select AI Provider */}
-                <div className="space-y-1">
-                  <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Penyedia AI (AI Provider)</label>
-                  <select
-                    value={aiProvider}
-                    onChange={(e) => updateAiSetting("english_tutor_ai_provider", e.target.value)}
-                    className="w-full rounded-md border border-slate-800 bg-slate-955 p-2 text-xs text-white bg-slate-950 focus:border-violet-500 focus:outline-none"
-                  >
-                    {PROVIDERS.map((prov) => (
-                      <option key={prov.id} value={prov.id}>
-                        {prov.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* API Key */}
-                <div className="space-y-1">
-                  <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400">API Key</label>
-                  <Input
-                    type="password"
-                    value={aiApiKey}
-                    onChange={(e) => updateAiSetting("english_tutor_ai_api_key", e.target.value)}
-                    placeholder={PROVIDERS.find(p => p.id === aiProvider)?.placeholderApiKey || "Masukkan API Key"}
-                    className="border-slate-800 bg-slate-950 text-xs"
-                  />
-                  <p className="text-[9px] text-slate-500">
-                    {PROVIDERS.find(p => p.id === aiProvider)?.helperText}
-                  </p>
-                </div>
-
-                {/* Model Name */}
-                <div className="space-y-1">
-                  <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Nama Model (Model Name)</label>
-                  <Input
-                    type="text"
-                    value={aiModelName}
-                    onChange={(e) => updateAiSetting("english_tutor_ai_model_name", e.target.value)}
-                    placeholder="Contoh: gemini-2.5-flash, gpt-4o-mini"
-                    className="border-slate-800 bg-slate-950 text-xs"
-                  />
-                </div>
-
-                {/* Base URL (only show for Custom, or if defaultBaseUrl exists) */}
-                {(aiProvider === "custom" || PROVIDERS.find(p => p.id === aiProvider)?.defaultBaseUrl !== undefined) && (
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Base URL (API Endpoint)</label>
-                    <Input
-                      type="text"
-                      value={aiBaseUrl}
-                      onChange={(e) => updateAiSetting("english_tutor_ai_base_url", e.target.value)}
-                      placeholder="Contoh: https://api.deepseek.com/v1"
-                      className="border-slate-800 bg-slate-950 text-xs"
-                    />
-                    <p className="text-[9px] text-slate-500">
-                      Biarkan kosong untuk menggunakan URL bawaan penyedia.
-                    </p>
-                  </div>
-                )}
-              </div>
 
             </CardContent>
             <CardFooter>
@@ -507,11 +384,6 @@ export default function OnboardingTest() {
                 </div>
               </div>
 
-              {/* XP Bonus details */}
-              <div className="bg-gradient-to-r from-violet-900/20 to-indigo-900/20 border border-violet-850/40 p-3.5 rounded-xl text-xs text-violet-300 font-semibold flex items-center justify-center gap-1.5">
-                <FlameIcon className="size-4 text-violet-400 fill-violet-400/25 animate-bounce" />
-                <span>Selamat! Anda berhasil mengaktifkan level Anda & mendapatkan +{results.xpGained} XP Bonus!</span>
-              </div>
 
             </CardContent>
             <CardFooter className="border-t border-slate-900/50 py-4">

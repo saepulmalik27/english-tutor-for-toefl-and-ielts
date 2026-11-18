@@ -1,54 +1,21 @@
-import { getArticleDetailsAction } from "@/app/actions/progressActions";
-import InteractiveArticle from "@/components/InteractiveArticle";
-import { getSessionUser } from "@/lib/auth";
 import Link from "next/link";
-import { redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import { ArrowLeftIcon } from "lucide-react";
+import { db } from "@/lib/db";
+import PassageReader from "@/components/PassageReader";
 
-interface ArticleDetailsProps {
-  params: Promise<{ id: string }>;
-}
-
-export default async function ArticleDetailsPage({ params }: ArticleDetailsProps) {
-  const user = await getSessionUser();
-  if (!user) {
-    redirect("/login");
-  }
-
+export default async function PassagePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const article = await getArticleDetailsAction(id);
-
-  if (!article) {
-    redirect("/dashboard/reading");
-  }
+  const passage = await db.passage.findFirst({ where: { id, status: "active" } });
+  if (!passage) notFound();
 
   return (
     <div className="space-y-6">
-      <Link 
-        href="/dashboard/reading" 
-        className="inline-flex items-center gap-2 text-xs text-slate-400 hover:text-white font-semibold group"
-      >
-        <ArrowLeftIcon className="size-3.5 group-hover:-translate-x-0.5 transition-all" />
-        <span>Kembali ke Daftar Artikel</span>
+      <Link href="/dashboard/reading" className="inline-flex items-center gap-2 text-xs font-semibold text-slate-400 hover:text-white">
+        <ArrowLeftIcon className="size-3.5" />
+        <span>Kembali ke daftar passage</span>
       </Link>
-
-      <InteractiveArticle 
-        article={{
-          id: article.id,
-          title: article.title,
-          content: article.content,
-          translation: article.translation,
-          vocabJson: article.vocabJson,
-          difficulty: article.difficulty,
-        }}
-        questions={article.questions.map(q => ({
-          id: q.id,
-          question: q.question,
-          optionsJson: q.optionsJson,
-          answer: q.answer,
-          explanation: q.explanation,
-        }))}
-      />
+      <PassageReader passage={passage} />
     </div>
   );
 }

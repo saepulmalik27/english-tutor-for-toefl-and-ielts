@@ -1,13 +1,8 @@
 "use server";
 
 import { db } from "@/lib/db";
-import { getSessionUser } from "@/lib/auth";
-import { 
-  analyzeWritingLocally, 
-  analyzeWritingWithLangChainWrapper, 
-} from "./tutorActions";
-import { type feedbackResult } from "@/lib/ai";
-import { redirect } from "next/navigation";
+import { getLearner } from "@/lib/learner";
+import { evaluateWriting } from "@/lib/ai";
 
 // Define interface for onboarding test submissions
 export interface OnboardingAnswers {
@@ -15,10 +10,6 @@ export interface OnboardingAnswers {
   q2: string; // Although she was tired, she _____ working on her assignment. -> "continued"
   q3: string; // By the time the manager arrived, the reports _____ by the team. -> "had been finished"
   essay: string; // Brief self-introduction / goals
-  aiProvider?: string;
-  aiModelName?: string;
-  aiApiKey?: string;
-  aiBaseUrl?: string;
   targetIeltsBand?: number;
   targetToeflScore?: number;
 }
@@ -29,7 +20,6 @@ export interface OnboardingResponse {
   ieltsBand?: number;
   toeflScore?: number;
   level?: string;
-  xpGained?: number;
 }
 
 const PRETEST_ANSWERS = {
@@ -42,12 +32,9 @@ const PRETEST_ANSWERS = {
  * Handle onboarding pre-test grading and metrics calculation
  */
 export async function submitOnboardingAction(answers: OnboardingAnswers): Promise<OnboardingResponse> {
-  const user = await getSessionUser();
-  if (!user) {
-    return { success: false, error: "Harap login terlebih dahulu." };
-  }
+  const user = await getLearner();
 
-  const { q1, q2, q3, essay, aiApiKey, targetIeltsBand, targetToeflScore } = answers;
+  const { q1, q2, q3, essay, targetIeltsBand, targetToeflScore } = answers;
 
   if (!q1 || !q2 || !q3 || !essay.trim()) {
     return { success: false, error: "Semua kolom tes wajib diisi." };
@@ -75,30 +62,9 @@ export async function submitOnboardingAction(answers: OnboardingAnswers): Promis
       readingToefl = 45;
     }
 
-    // 2. Grade the Writing section (essay) using LangChain or offline fallback
-    let writingEvaluation: feedbackResult;
+    // 2. Grade the Writing section (essay) with the AI module
     const writingPrompt = "Introduce yourself in English and tell us your learning goals.";
-    
-    const { aiProvider, aiModelName, aiBaseUrl } = answers;
-    const envProvider = process.env.GENERATION_AI_PROVIDER || "gemini";
-    const envModelName = process.env.GENERATION_AI_MODEL || "gemini-2.5-flash";
-    const envApiKey = process.env.GENERATION_AI_API_KEY;
-
-    const resolvedProvider = (aiApiKey && aiApiKey.trim() !== "") ? (aiProvider || "gemini") : envProvider;
-    const resolvedModel = (aiApiKey && aiApiKey.trim() !== "") ? (aiModelName || "") : envModelName;
-    const resolvedApiKey = (aiApiKey && aiApiKey.trim() !== "") ? aiApiKey.trim() : (envApiKey && envApiKey.trim() !== "" ? envApiKey.trim() : "");
-    const resolvedBaseUrl = (aiApiKey && aiApiKey.trim() !== "") ? aiBaseUrl : (process.env.GENERATION_AI_BASE_URL || "");
-
-    if (resolvedApiKey) {
-      writingEvaluation = await analyzeWritingWithLangChainWrapper(essay, writingPrompt, {
-        provider: resolvedProvider,
-        modelName: resolvedModel || "gemini-2.5-flash",
-        apiKey: resolvedApiKey,
-        baseUrl: resolvedBaseUrl
-      });
-    } else {
-      writingEvaluation = await analyzeWritingLocally(essay);
-    }
+    const writingEvaluation = await evaluateWriting(essay, writingPrompt);
 
     // 3. Compute overall initial metrics (averages)
     const initialIeltsBand = Math.round(((readingIelts + writingEvaluation.ieltsBand) / 2) * 10) / 10;
@@ -113,12 +79,10 @@ export async function submitOnboardingAction(answers: OnboardingAnswers): Promis
     }
 
     // 4. Save results to User and mark as onboarded
-    const onboardXpBonus = 50; // starting bonus XP
     await db.user.update({
       where: { id: user.id },
       data: {
         isOnboarded: true,
-        xp: onboardXpBonus,
         currentIeltsBand: initialIeltsBand,
         currentToeflScore: initialToeflScore,
         targetIeltsBand: targetIeltsBand !== undefined ? Number(targetIeltsBand) : 6.5,
@@ -141,7 +105,6 @@ export async function submitOnboardingAction(answers: OnboardingAnswers): Promis
         toeflScore: initialToeflScore,
         readingScore: readingCorrect * 33.3,
         writingScore: writingEvaluation.score,
-        xpGained: onboardXpBonus,
       },
       create: {
         userId: user.id,
@@ -150,7 +113,6 @@ export async function submitOnboardingAction(answers: OnboardingAnswers): Promis
         toeflScore: initialToeflScore,
         readingScore: readingCorrect * 33.3,
         writingScore: writingEvaluation.score,
-        xpGained: onboardXpBonus,
       },
     });
 
@@ -172,7 +134,6 @@ export async function submitOnboardingAction(answers: OnboardingAnswers): Promis
       ieltsBand: initialIeltsBand,
       toeflScore: initialToeflScore,
       level: userLevel,
-      xpGained: onboardXpBonus
     };
 
   } catch (error) {

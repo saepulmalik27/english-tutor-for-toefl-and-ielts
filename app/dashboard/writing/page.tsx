@@ -1,14 +1,8 @@
 import { getJournalHistoryAction } from "@/app/actions/tutorActions";
 import WritingEditor from "@/components/WritingEditor";
-import { getSessionUser } from "@/lib/auth";
-import { redirect } from "next/navigation";
 import { PenToolIcon } from "lucide-react";
 
 export default async function WritingPage() {
-  const user = await getSessionUser();
-  if (!user) {
-    redirect("/login");
-  }
 
   const history = await getJournalHistoryAction();
 

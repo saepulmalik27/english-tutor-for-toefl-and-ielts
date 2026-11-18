@@ -2,6 +2,7 @@
 
 import { db } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
+import { compressUserLearningProgress } from "@/app/actions/generatorActions";
 
 export interface QuizSubmissionResponse {
   success: boolean;
@@ -54,6 +55,111 @@ export async function submitQuizAction(
   }
 
   try {
+    // A. Check if it is a generated article first
+    const generatedArticle = await db.generatedArticle.findUnique({
+      where: { id: articleId },
+      include: { questions: true }
+    });
+
+    if (generatedArticle) {
+      // 2. Grade the answers
+      let correctCount = 0;
+      generatedArticle.questions.forEach((q) => {
+        const userAnswer = userAnswers[q.id]?.trim();
+        const correctAnswer = q.answer.trim();
+        if (userAnswer === correctAnswer) {
+          correctCount++;
+        }
+      });
+
+      const totalQuestions = generatedArticle.questions.length;
+      const scorePercentage = Math.round((correctCount / totalQuestions) * 100);
+      const { ieltsBand, toeflScore } = mapQuizScoreToMetrics(scorePercentage);
+
+      // 3. Mark progress as completed in GeneratedProgress
+      await db.generatedProgress.upsert({
+        where: {
+          userId_articleId: {
+            userId: user.id,
+            articleId,
+          },
+        },
+        update: {
+          completed: true,
+          quizScore: scorePercentage,
+        },
+        create: {
+          userId: user.id,
+          articleId,
+          completed: true,
+          quizScore: scorePercentage,
+        },
+      });
+
+      // 4. Update user overall metrics and award XP
+      const xpGained = 15 + correctCount * 5;
+      const newIeltsBand = Math.round(((user.currentIeltsBand + ieltsBand) / 2) * 10) / 10;
+      const newToeflScore = Math.round((user.currentToeflScore + toeflScore) / 2);
+
+      await db.user.update({
+        where: { id: user.id },
+        data: {
+          xp: { increment: xpGained },
+          currentIeltsBand: newIeltsBand,
+          currentToeflScore: newToeflScore,
+        },
+      });
+
+      // 5. Update daily metric historical snapshot
+      const todayStr = new Date().toISOString().split("T")[0]; // YYYY-MM-DD
+      const existingMetric = await db.dailyMetric.findUnique({
+        where: {
+          userId_date: {
+            userId: user.id,
+            date: todayStr,
+          },
+        },
+      });
+
+      if (existingMetric) {
+        await db.dailyMetric.update({
+          where: { id: existingMetric.id },
+          data: {
+            ieltsBand: Math.round(((existingMetric.ieltsBand + ieltsBand) / 2) * 10) / 10,
+            toeflScore: Math.round((existingMetric.toeflScore + toeflScore) / 2),
+            readingScore: scorePercentage,
+            xpGained: { increment: xpGained },
+          },
+        });
+      } else {
+        await db.dailyMetric.create({
+          data: {
+            userId: user.id,
+            date: todayStr,
+            ieltsBand,
+            toeflScore,
+            readingScore: scorePercentage,
+            writingScore: 0,
+            xpGained,
+          },
+        });
+      }
+
+      // Trigger user profile memory compression asynchronously
+      await compressUserLearningProgress();
+
+      return {
+        success: true,
+        score: scorePercentage,
+        correctAnswers: correctCount,
+        totalQuestions,
+        ieltsBand,
+        toeflScore,
+        xpGained,
+      };
+    }
+
+    // B. Normal Static Article Flow
     // 1. Fetch questions for the article
     const questions = await db.question.findMany({
       where: { articleId },
@@ -148,6 +254,9 @@ export async function submitQuizAction(
         },
       });
     }
+
+    // Trigger context compression
+    await compressUserLearningProgress();
 
     return {
       success: true,

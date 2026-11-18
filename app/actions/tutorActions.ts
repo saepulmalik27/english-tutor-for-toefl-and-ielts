@@ -147,15 +147,24 @@ export async function submitJournalAction(formData: FormData) {
     return { success: false, error: "Tulisan tidak boleh kosong." };
   }
 
+  const envProvider = process.env.GENERATION_AI_PROVIDER || "gemini";
+  const envModelName = process.env.GENERATION_AI_MODEL || "gemini-2.5-flash";
+  const envApiKey = process.env.GENERATION_AI_API_KEY;
+
+  const resolvedProvider = (aiApiKey && aiApiKey.trim() !== "") ? aiProvider : envProvider;
+  const resolvedModel = (aiApiKey && aiApiKey.trim() !== "") ? aiModelName : envModelName;
+  const resolvedApiKey = (aiApiKey && aiApiKey.trim() !== "") ? aiApiKey.trim() : (envApiKey && envApiKey.trim() !== "" ? envApiKey.trim() : "");
+  const resolvedBaseUrl = (aiApiKey && aiApiKey.trim() !== "") ? aiBaseUrl : (process.env.GENERATION_AI_BASE_URL || "");
+
   try {
     // 1. Analyze text using LangChain with dynamic settings or local heuristic parser
     let evaluation: feedbackResult;
-    if (aiApiKey) {
+    if (resolvedApiKey) {
       evaluation = await analyzeWritingWithLangChainWrapper(userText, prompt, {
-        provider: aiProvider,
-        modelName: aiModelName,
-        apiKey: aiApiKey,
-        baseUrl: aiBaseUrl
+        provider: resolvedProvider,
+        modelName: resolvedModel || "gemini-2.5-flash",
+        apiKey: resolvedApiKey,
+        baseUrl: resolvedBaseUrl
       });
     } else {
       evaluation = await analyzeWritingLocally(userText);

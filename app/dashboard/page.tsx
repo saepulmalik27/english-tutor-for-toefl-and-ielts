@@ -7,6 +7,7 @@ import { db } from "@/lib/db";
 import { Badge } from "@/components/ui/badge";
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import GenerateSessionButton from "@/components/GenerateSessionButton";
 import { 
   GraduationCapIcon, 
   BookOpenIcon, 
@@ -30,6 +31,25 @@ export default async function DashboardPage() {
   }) || await db.lesson.findFirst();
 
   const stats = await getUserStatsAction();
+
+  // Fetch latest generated article and lesson for this user
+  const latestGeneratedArticle = await db.generatedArticle.findFirst({
+    where: { userId: user.id },
+    orderBy: { createdAt: "desc" },
+    include: {
+      progress: {
+        where: { userId: user.id }
+      }
+    }
+  });
+
+  const latestGeneratedLesson = await db.generatedLesson.findFirst({
+    where: { userId: user.id },
+    orderBy: { createdAt: "desc" }
+  });
+
+  const targetIelts = user.targetIeltsBand;
+  const targetToefl = user.targetToeflScore;
   if (!stats) {
     return (
       <div className="flex items-center justify-center min-h-[50vh] text-slate-400">
@@ -87,6 +107,122 @@ export default async function DashboardPage() {
         </div>
       </div>
 
+      {/* Personalized AI Study Modules Section */}
+      <div className="space-y-4 bg-slate-900/10 border border-slate-900 p-6 rounded-2xl relative overflow-hidden">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div className="space-y-1">
+            <h3 className="text-xl font-bold text-white flex items-center gap-2">
+              <SparklesIcon className="size-5 text-violet-400 fill-violet-400/20 animate-pulse" />
+              <span>Modul Belajar Kustom AI (Personalized)</span>
+            </h3>
+            <p className="text-xs text-slate-400">
+              Materi belajar dan latihan interaktif yang dirancang khusus berdasarkan profil memori belajar dan tulisan jurnal Anda.
+            </p>
+          </div>
+          <GenerateSessionButton />
+        </div>
+
+        {(!latestGeneratedLesson && !latestGeneratedArticle) ? (
+          <Card className="border-dashed border-slate-850 bg-slate-950/20 p-8 text-center flex flex-col items-center justify-center gap-3">
+            <div className="size-12 rounded-full bg-violet-600/10 flex items-center justify-center text-violet-400">
+              <SparklesIcon className="size-6" />
+            </div>
+            <div className="space-y-1">
+              <h4 className="text-sm font-bold text-slate-200 font-sans">Belum ada modul belajar kustom</h4>
+              <p className="text-xs text-slate-500 max-w-md mx-auto leading-relaxed">
+                Tulis beberapa jurnal harian Anda terlebih dahulu, kemudian klik tombol di atas untuk menyusun materi belajar personal guna memperbaiki kelemahan tata bahasa Anda secara terstruktur!
+              </p>
+            </div>
+          </Card>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Custom Lesson Card */}
+            {latestGeneratedLesson ? (
+              <Card className="border-slate-800 bg-slate-900/30 hover:bg-slate-900/50 transition-all flex flex-col justify-between">
+                <CardHeader className="pb-3">
+                  <div className="flex justify-between items-center mb-2">
+                    <Badge className="bg-violet-950/60 border border-violet-900/40 text-violet-400 text-[10px] px-2.5 py-0.5 rounded-full font-bold">
+                      PELAJARAN KUSTOM: {latestGeneratedLesson.category.toUpperCase()}
+                    </Badge>
+                    <span className="text-[10px] text-slate-500">
+                      Dibuat: {new Date(latestGeneratedLesson.createdAt).toLocaleDateString("id-ID")}
+                    </span>
+                  </div>
+                  <CardTitle className="text-base font-bold text-slate-200 line-clamp-1">
+                    {latestGeneratedLesson.title}
+                  </CardTitle>
+                  <CardDescription className="text-xs text-slate-400 line-clamp-2 mt-1">
+                    {latestGeneratedLesson.summary}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="pt-0">
+                  <Link 
+                    href={`/dashboard/lessons/generated/${latestGeneratedLesson.id}`}
+                    className="w-full py-2.5 rounded-xl border border-violet-900/40 bg-violet-950/20 hover:bg-violet-950/40 text-violet-400 hover:text-white font-bold text-xs text-center flex items-center justify-center gap-1.5 transition-all"
+                  >
+                    <span>Pelajari Pelajaran</span>
+                    <ArrowRightIcon className="size-3.5" />
+                  </Link>
+                </CardContent>
+              </Card>
+            ) : (
+              <Card className="border-dashed border-slate-850 bg-slate-950/10 p-6 flex flex-col items-center justify-center text-center">
+                <p className="text-xs text-slate-500">Belum ada pelajaran kustom yang dihasilkan. Klik tombol di atas untuk membuatnya.</p>
+              </Card>
+            )}
+
+            {/* Custom Reading Card */}
+            {latestGeneratedArticle ? (() => {
+              const quizCompleted = latestGeneratedArticle.progress?.[0]?.completed || false;
+              const quizScore = latestGeneratedArticle.progress?.[0]?.quizScore ?? null;
+              
+              return (
+                <Card className="border-slate-800 bg-slate-900/30 hover:bg-slate-900/50 transition-all flex flex-col justify-between">
+                  <CardHeader className="pb-3">
+                    <div className="flex justify-between items-center mb-2">
+                      <Badge className="bg-emerald-950/60 border border-emerald-900/40 text-emerald-400 text-[10px] px-2.5 py-0.5 rounded-full font-bold">
+                        BACAAN KUSTOM: {latestGeneratedArticle.difficulty.toUpperCase()}
+                      </Badge>
+                      <span className="text-[10px] text-slate-500">
+                        Dibuat: {new Date(latestGeneratedArticle.createdAt).toLocaleDateString("id-ID")}
+                      </span>
+                    </div>
+                    <CardTitle className="text-base font-bold text-slate-200 line-clamp-1">
+                      {latestGeneratedArticle.title}
+                    </CardTitle>
+                    <CardDescription className="text-xs text-slate-400 line-clamp-2 mt-1">
+                      Latihan interaktif membaca artikel kustom dan ikuti kuis pemahaman bacaan untuk menilai pemahaman Anda.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="pt-0 flex items-center gap-3">
+                    <Link 
+                      href={`/dashboard/reading/generated/${latestGeneratedArticle.id}`}
+                      className="flex-1 py-2.5 rounded-xl border border-emerald-900/40 bg-emerald-950/20 hover:bg-emerald-950/40 text-emerald-400 hover:text-white font-bold text-xs text-center flex items-center justify-center gap-1.5 transition-all"
+                    >
+                      <span>Mulai Membaca</span>
+                      <ArrowRightIcon className="size-3.5" />
+                    </Link>
+                    {quizCompleted ? (
+                      <Badge className="bg-emerald-600/10 border border-emerald-500/20 text-emerald-400 h-9 font-bold px-3 text-xs shrink-0 rounded-xl">
+                        Skor: {quizScore}%
+                      </Badge>
+                    ) : (
+                      <Badge className="bg-amber-600/10 border border-amber-500/20 text-amber-400 h-9 font-bold px-3 text-xs shrink-0 rounded-xl">
+                        Kuis Aktif
+                      </Badge>
+                    )}
+                  </CardContent>
+                </Card>
+              );
+            })() : (
+              <Card className="border-dashed border-slate-850 bg-slate-950/10 p-6 flex flex-col items-center justify-center text-center">
+                <p className="text-xs text-slate-500">Belum ada artikel kustom yang dihasilkan. Klik tombol di atas untuk membuatnya.</p>
+              </Card>
+            )}
+          </div>
+        )}
+      </div>
+
       {/* Recommended Lesson Banner */}
       {recommendedLesson && (
         <Card className="border-violet-900/50 bg-violet-950/10 backdrop-blur-xl relative overflow-hidden flex flex-col md:flex-row justify-between items-start md:items-center gap-6 p-6">
@@ -125,14 +261,24 @@ export default async function DashboardPage() {
             </CardTitle>
             <CardDescription className="text-slate-400">Diperbaharui berdasarkan latihan menulis & membaca harian Anda.</CardDescription>
           </CardHeader>
-          <CardContent className="flex items-center gap-6 py-4">
-            <div className="relative size-24 flex items-center justify-center rounded-full bg-slate-950 border-2 border-violet-500 shadow-lg shadow-violet-500/10">
-              <span className="text-3xl font-black text-white">{stats.ieltsBand.toFixed(1)}</span>
+          <CardContent className="flex flex-col gap-4 py-4">
+            <div className="flex items-center gap-6">
+              <div className="relative size-24 flex items-center justify-center rounded-full bg-slate-950 border-2 border-violet-500 shadow-lg shadow-violet-500/10 shrink-0">
+                <span className="text-3xl font-black text-white">{stats.ieltsBand.toFixed(1)}</span>
+              </div>
+              <div className="space-y-1">
+                <div className="text-xs uppercase tracking-wider text-slate-400 font-bold">Kategori Kecakapan</div>
+                <div className="text-lg font-extrabold text-slate-100">{getIeltsDescriptor(stats.ieltsBand)}</div>
+                <p className="text-xs text-slate-500">IELTS menilai kemampuan bahasa Inggris dari rentang band 1.0 sampai 9.0.</p>
+              </div>
             </div>
-            <div className="space-y-1">
-              <div className="text-xs uppercase tracking-wider text-slate-400 font-bold">Kategori Kecakapan</div>
-              <div className="text-lg font-extrabold text-slate-100">{getIeltsDescriptor(stats.ieltsBand)}</div>
-              <p className="text-xs text-slate-500">IELTS menilai kemampuan bahasa Inggris dari rentang band 1.0 sampai 9.0.</p>
+            {/* Target Score Progress HUD */}
+            <div className="mt-2 space-y-1.5 border-t border-slate-800/60 pt-3">
+              <div className="flex justify-between items-center text-xs">
+                <span className="text-slate-400 font-medium">Target Pencapaian Skor</span>
+                <span className="text-violet-400 font-bold">Target: {targetIelts.toFixed(1)} ({Math.round(Math.min(100, (stats.ieltsBand / targetIelts) * 100))}% Tercapai)</span>
+              </div>
+              <Progress value={Math.min(100, (stats.ieltsBand / targetIelts) * 100)} className="h-2 bg-slate-950 border border-slate-850" />
             </div>
           </CardContent>
         </Card>
@@ -147,14 +293,24 @@ export default async function DashboardPage() {
             </CardTitle>
             <CardDescription className="text-slate-400">Diperbaharui berdasarkan ketepatan kuis pemahaman bacaan Anda.</CardDescription>
           </CardHeader>
-          <CardContent className="flex items-center gap-6 py-4">
-            <div className="relative size-24 flex items-center justify-center rounded-full bg-slate-950 border-2 border-emerald-500 shadow-lg shadow-emerald-500/10">
-              <span className="text-3xl font-black text-white">{stats.toeflScore}</span>
+          <CardContent className="flex flex-col gap-4 py-4">
+            <div className="flex items-center gap-6">
+              <div className="relative size-24 flex items-center justify-center rounded-full bg-slate-950 border-2 border-emerald-500 shadow-lg shadow-emerald-500/10 shrink-0">
+                <span className="text-3xl font-black text-white">{stats.toeflScore}</span>
+              </div>
+              <div className="space-y-1">
+                <div className="text-xs uppercase tracking-wider text-slate-400 font-bold">Kategori Kecakapan</div>
+                <div className="text-lg font-extrabold text-slate-100">{getToeflDescriptor(stats.toeflScore)}</div>
+                <p className="text-xs text-slate-500">TOEFL iBT menilai kemampuan akademik bahasa Inggris dari skor 0 sampai 120.</p>
+              </div>
             </div>
-            <div className="space-y-1">
-              <div className="text-xs uppercase tracking-wider text-slate-400 font-bold">Kategori Kecakapan</div>
-              <div className="text-lg font-extrabold text-slate-100">{getToeflDescriptor(stats.toeflScore)}</div>
-              <p className="text-xs text-slate-500">TOEFL iBT menilai kemampuan akademik bahasa Inggris dari skor 0 sampai 120.</p>
+            {/* Target Score Progress HUD */}
+            <div className="mt-2 space-y-1.5 border-t border-slate-800/60 pt-3">
+              <div className="flex justify-between items-center text-xs">
+                <span className="text-slate-400 font-medium">Target Pencapaian Skor</span>
+                <span className="text-emerald-400 font-bold">Target: {targetToefl} ({Math.round(Math.min(100, (stats.toeflScore / targetToefl) * 100))}% Tercapai)</span>
+              </div>
+              <Progress value={Math.min(100, (stats.toeflScore / targetToefl) * 100)} className="h-2 bg-slate-950 border border-slate-850" />
             </div>
           </CardContent>
         </Card>

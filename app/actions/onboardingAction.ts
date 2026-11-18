@@ -19,6 +19,8 @@ export interface OnboardingAnswers {
   aiModelName?: string;
   aiApiKey?: string;
   aiBaseUrl?: string;
+  targetIeltsBand?: number;
+  targetToeflScore?: number;
 }
 
 export interface OnboardingResponse {
@@ -45,7 +47,7 @@ export async function submitOnboardingAction(answers: OnboardingAnswers): Promis
     return { success: false, error: "Harap login terlebih dahulu." };
   }
 
-  const { q1, q2, q3, essay, aiApiKey } = answers;
+  const { q1, q2, q3, essay, aiApiKey, targetIeltsBand, targetToeflScore } = answers;
 
   if (!q1 || !q2 || !q3 || !essay.trim()) {
     return { success: false, error: "Semua kolom tes wajib diisi." };
@@ -78,12 +80,21 @@ export async function submitOnboardingAction(answers: OnboardingAnswers): Promis
     const writingPrompt = "Introduce yourself in English and tell us your learning goals.";
     
     const { aiProvider, aiModelName, aiBaseUrl } = answers;
-    if (aiApiKey && aiApiKey.trim()) {
+    const envProvider = process.env.GENERATION_AI_PROVIDER || "gemini";
+    const envModelName = process.env.GENERATION_AI_MODEL || "gemini-2.5-flash";
+    const envApiKey = process.env.GENERATION_AI_API_KEY;
+
+    const resolvedProvider = (aiApiKey && aiApiKey.trim() !== "") ? (aiProvider || "gemini") : envProvider;
+    const resolvedModel = (aiApiKey && aiApiKey.trim() !== "") ? (aiModelName || "") : envModelName;
+    const resolvedApiKey = (aiApiKey && aiApiKey.trim() !== "") ? aiApiKey.trim() : (envApiKey && envApiKey.trim() !== "" ? envApiKey.trim() : "");
+    const resolvedBaseUrl = (aiApiKey && aiApiKey.trim() !== "") ? aiBaseUrl : (process.env.GENERATION_AI_BASE_URL || "");
+
+    if (resolvedApiKey) {
       writingEvaluation = await analyzeWritingWithLangChainWrapper(essay, writingPrompt, {
-        provider: aiProvider || "gemini",
-        modelName: aiModelName || "",
-        apiKey: aiApiKey.trim(),
-        baseUrl: aiBaseUrl
+        provider: resolvedProvider,
+        modelName: resolvedModel || "gemini-2.5-flash",
+        apiKey: resolvedApiKey,
+        baseUrl: resolvedBaseUrl
       });
     } else {
       writingEvaluation = await analyzeWritingLocally(essay);
@@ -110,6 +121,8 @@ export async function submitOnboardingAction(answers: OnboardingAnswers): Promis
         xp: onboardXpBonus,
         currentIeltsBand: initialIeltsBand,
         currentToeflScore: initialToeflScore,
+        targetIeltsBand: targetIeltsBand !== undefined ? Number(targetIeltsBand) : 6.5,
+        targetToeflScore: targetToeflScore !== undefined ? Number(targetToeflScore) : 80,
         lastActive: new Date(),
       },
     });

@@ -37,6 +37,8 @@ export default function OnboardingTest() {
   const [aiModelName, setAiModelName] = useState("gemini-2.5-flash");
   const [aiApiKey, setAiApiKey] = useState("");
   const [aiBaseUrl, setAiBaseUrl] = useState("");
+  const [targetIeltsBand, setTargetIeltsBand] = useState(6.5);
+  const [targetToeflScore, setTargetToeflScore] = useState(80);
   
   // Submission & Results State
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -110,7 +112,9 @@ export default function OnboardingTest() {
         aiProvider,
         aiModelName,
         aiApiKey: aiApiKey.trim(),
-        aiBaseUrl: aiBaseUrl.trim()
+        aiBaseUrl: aiBaseUrl.trim(),
+        targetIeltsBand: Number(targetIeltsBand) || 6.5,
+        targetToeflScore: Number(targetToeflScore) || 80
       });
 
       if (response.success && response.ieltsBand !== undefined) {
@@ -177,6 +181,47 @@ export default function OnboardingTest() {
                   <li>**Bagian 2: Menulis (Writing)** - Menulis perkenalan singkat dalam bahasa Inggris (min. 10 kata).</li>
                   <li>**Bonus**: Menyelesaikan pre-test memberikan **+50 XP** langsung untuk level akun Anda!</li>
                 </ul>
+              </div>
+
+              {/* Target Score Settings */}
+              <div className="space-y-3 pt-4 border-t border-slate-800">
+                <label className="text-xs font-black uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                  <BookOpenIcon className="size-4 text-violet-400" />
+                  <span>Target Skor Belajar Anda (IELTS / TOEFL)</span>
+                </label>
+                <p className="text-[10px] text-slate-500 leading-relaxed">
+                  Tentukan target skor yang ingin Anda capai. AI Tutor akan secara otomatis menyesuaikan tingkat kesulitan materi dan kuis kustom harian untuk membantu Anda mencapainya.
+                </p>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-semibold text-slate-300">Target IELTS Band</label>
+                    <select
+                      value={targetIeltsBand}
+                      onChange={(e) => setTargetIeltsBand(Number(e.target.value))}
+                      className="w-full rounded-md border border-slate-800 bg-slate-950 p-2 text-xs text-white focus:border-violet-500 focus:outline-none"
+                    >
+                      {[4.5, 5.0, 5.5, 6.0, 6.5, 7.0, 7.5, 8.0, 8.5, 9.0].map((val) => (
+                        <option key={val} value={val}>
+                          IELTS {val.toFixed(1)}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-semibold text-slate-300">Target TOEFL iBT</label>
+                    <select
+                      value={targetToeflScore}
+                      onChange={(e) => setTargetToeflScore(Number(e.target.value))}
+                      className="w-full rounded-md border border-slate-800 bg-slate-950 p-2 text-xs text-white focus:border-violet-500 focus:outline-none"
+                    >
+                      {[40, 50, 60, 70, 80, 90, 100, 110, 120].map((val) => (
+                        <option key={val} value={val}>
+                          TOEFL {val}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
               </div>
 
               {/* AI Tutor settings block */}

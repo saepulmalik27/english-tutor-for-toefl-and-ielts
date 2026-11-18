@@ -18,7 +18,7 @@ function getJwtSecret(): string {
 }
 
 const JWT_SECRET = getJwtSecret();
-const SESSION_COOKIE_NAME = "__Secure-session"; // "__Secure-" prefix enforces secure attribute requirements
+const SESSION_COOKIE_NAME = "english_tutor_session";
 
 export interface JWTPayload {
   userId: string;
@@ -93,13 +93,22 @@ export async function getSessionUser() {
         streak: true,
         currentIeltsBand: true,
         currentToeflScore: true,
+        targetIeltsBand: true,
+        targetToeflScore: true,
         isOnboarded: true,
       },
     });
 
     return user;
-  } catch (error) {
-    // If JWT is invalid/expired
+  } catch (error: any) {
+    if (
+      error &&
+      (error.message?.includes("Dynamic server usage") ||
+        error.digest === "DYNAMIC_SERVER_USAGE")
+    ) {
+      throw error;
+    }
+    console.error("getSessionUser error:", error);
     return null;
   }
 }

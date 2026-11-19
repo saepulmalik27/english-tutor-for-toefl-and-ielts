@@ -38,3 +38,6 @@ next-env.d.ts
 
 # Claude Code agent worktrees
 .claude/worktrees/
+
+# ielts.org samples: kept privately (licence), copied into the private Docker image only
+content/private/

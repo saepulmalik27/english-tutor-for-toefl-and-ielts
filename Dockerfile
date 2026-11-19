@@ -7,8 +7,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends openssl \
 WORKDIR /app
 
 FROM base AS build
-# Same pnpm major that wrote pnpm-lock.yaml.
-RUN npm install -g pnpm@10.27.0
+# Same pnpm version that installs node_modules locally (keeps --frozen-lockfile happy).
+RUN npm install -g pnpm@12.18.0
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 RUN pnpm install --frozen-lockfile
 COPY . .
@@ -23,6 +23,8 @@ COPY --from=build --chown=node:node /app/.next/standalone ./
 COPY --from=build --chown=node:node /app/.next/static ./.next/static
 COPY --from=build --chown=node:node /app/public ./public
 COPY --from=build --chown=node:node /app/prisma ./prisma
+# Private ielts.org examples (gitignored); generation runs without them if absent.
+COPY --from=build --chown=node:node /app/content ./content
 USER node
 EXPOSE 3000
 CMD ["sh", "-c", "prisma migrate deploy && exec node server.js"]

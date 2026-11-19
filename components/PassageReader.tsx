@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Volume2Icon, SquareIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { paragraphLetter } from "@/lib/questions/pipeline";
 
 export interface PassageView {
   title: string;
@@ -43,9 +44,15 @@ export default function PassageReader({ passage }: { passage: PassageView }) {
         {passage.body.split(/\n{2,}/).map((para, i) => {
           // A crawled section heading sits on the first line of its paragraph.
           const [first, ...rest] = para.split("\n");
-          return rest.length
-            ? <section key={i}><h2 className="font-semibold text-white">{first}</h2><p>{rest.join(" ")}</p></section>
-            : <p key={i}>{para}</p>;
+          return (
+            <section key={i} className="flex gap-3">
+              {/* Paragraph letters match the "Paragraph A" wording in matching questions. */}
+              <span className="mt-0.5 shrink-0 text-sm font-bold text-emerald-400">{paragraphLetter(i)}</span>
+              {rest.length
+                ? <div><h2 className="font-semibold text-white">{first}</h2><p>{rest.join(" ")}</p></div>
+                : <p>{para}</p>}
+            </section>
+          );
         })}
       </div>
       {passage.sourceUrl && (

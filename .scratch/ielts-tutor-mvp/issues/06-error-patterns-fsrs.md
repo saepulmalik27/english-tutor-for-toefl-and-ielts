@@ -4,13 +4,13 @@
 
 **Blocked by:** 05
 
-**Status:** ready-for-agent
+**Status:** done (2026-11-18, not committed yet)
 
-- [ ] Taxonomy is a fixed list covering GRA, LR, CC, TA/TR, FC and Reading; unknown IDs from the LLM fall to 'other' with the note kept
-- [ ] First occurrence of a pattern creates a card; any later occurrence in practice records Again
-- [ ] ts-fsrs v6 with version FSRS-6, default parameters, desired retention 0.9
-- [ ] Weakness Profile (pattern frequency over 30 days plus retrievability) is computed by query, not stored; UserMemory and its per-submit LLM summary are removed
-- [ ] Dashboard lists the top Error Patterns
-- [ ] Rating rules and LLM output parsing (unknown ID -> other, malformed JSON rejected) are unit-tested
+- [x] Taxonomy is a fixed list covering GRA, LR, CC, TA/TR, FC and Reading; unknown IDs from the LLM fall to 'other' with the note kept
+- [x] First occurrence of a pattern creates a card; any later occurrence in practice records Again
+- [x] ts-fsrs v6 with version FSRS-6, default parameters, desired retention 0.9
+- [x] Weakness Profile (pattern frequency over 30 days plus retrievability) is computed by query, not stored; UserMemory and its per-submit LLM summary are removed
+- [x] Dashboard lists the top Error Patterns
+- [x] Rating rules and LLM output parsing (unknown ID -> other, malformed JSON rejected) are unit-tested
 
 Source: `prd.md` v2 (approved 2026-11-18).

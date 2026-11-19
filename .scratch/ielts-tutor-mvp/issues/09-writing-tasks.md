@@ -4,12 +4,12 @@
 
 **Blocked by:** 06
 
-**Status:** ready-for-agent
+**Status:** done (2026-11-18, not committed yet)
 
-- [ ] Task 1 and Task 2 prompts are generated and stocked
-- [ ] Editor shows a live word count and the minimum
-- [ ] Scores per criterion, then Indonesian Feedback in a separate step
-- [ ] Mistakes are tagged with taxonomy IDs and update cards
-- [ ] Past submissions can be reopened with their Feedback
+- [x] Task 1 and Task 2 prompts are generated and stocked
+- [x] Editor shows a live word count and the minimum
+- [x] Scores per criterion, then Indonesian Feedback in a separate step
+- [x] Mistakes are tagged with taxonomy IDs and update cards
+- [x] Past submissions can be reopened with their Feedback
 
 Source: `prd.md` v2 (approved 2026-11-18).

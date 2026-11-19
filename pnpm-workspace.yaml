@@ -1,6 +1,8 @@
-ignoredBuiltDependencies:
-  - '@prisma/client'
-  - '@prisma/engines'
-  - prisma
-  - sharp
-  - unrs-resolver
+# pnpm 12: dependencies whose install scripts are deliberately not run (false). Prisma's client is
+# generated explicitly instead (`prisma generate`, also in the Dockerfile).
+allowBuilds:
+  '@prisma/client': false
+  '@prisma/engines': false
+  prisma: false
+  sharp: false
+  unrs-resolver: false

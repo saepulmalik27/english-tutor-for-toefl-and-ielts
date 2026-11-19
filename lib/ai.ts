@@ -4,16 +4,11 @@
 //   AI_STT_*       speech-to-text (Groq whisper-large-v3), no fallback
 // *_PROVIDER is a LangChain initChatModel provider id (default "openai", i.e. any OpenAI-compatible API).
 import { initChatModel } from "langchain";
+import { ChatOpenAI } from "@langchain/openai";
 import { HumanMessage, SystemMessage } from "@langchain/core/messages";
 import { db } from "./db.ts";
 import { createSerialQueue, rateLimitHeaders, withFallback } from "./ai-fallback.ts";
 
-export interface feedbackResult {
-  score: number;
-  ieltsBand: number;
-  toeflScore: number;
-  feedback: string;
-}
 
 const env = (key: string) => process.env[key]?.trim() || undefined;
 
@@ -33,20 +28,30 @@ const quotaFetch = (source: string): typeof fetch => async (input, init) => {
 };
 
 type Slot = "chat" | "fallback";
-const models = new Map<Slot, ReturnType<typeof initChatModel> | null>();
+// The one call both model kinds share.
+type Model = { invoke: (messages: (SystemMessage | HumanMessage)[]) => Promise<{ content: unknown }> };
+const models = new Map<Slot, Promise<Model> | null>();
 
 function model(slot: Slot) {
   if (!models.has(slot)) {
     const prefix = slot === "chat" ? "AI_CHAT" : "AI_FALLBACK";
     const name = env(`${prefix}_MODEL`);
-    models.set(slot, name ? initChatModel(name, {
-      modelProvider: env(`${prefix}_PROVIDER`) ?? "openai",
+    const provider = env(`${prefix}_PROVIDER`) ?? "openai";
+    const fields = {
       apiKey: env(`${prefix}_API_KEY`),
       temperature: 0.2,
+      // Workers AI defaults to 256 tokens, which gpt-oss spends on reasoning before any answer.
+      maxTokens: 8192,
       // Primary fails fast so a 429 goes straight to the fallback instead of 6 backoff retries.
       maxRetries: slot === "chat" ? 0 : 2,
       configuration: { baseURL: env(`${prefix}_BASE_URL`), fetch: quotaFetch(slot) },
-    }) : null);
+    };
+    // OpenAI-compatible providers (Groq, Cloudflare) use a static import: initChatModel loads provider
+    // packages with a dynamic import() that Next's standalone build cannot trace, so they would be missing
+    // from the Docker image. A new provider via initChatModel needs its package imported statically too.
+    models.set(slot, !name ? null
+      : provider === "openai" ? Promise.resolve(new ChatOpenAI({ model: name, ...fields }))
+      : initChatModel(name, { modelProvider: provider, ...fields }));
   }
   return models.get(slot)!;
 }
@@ -70,10 +75,7 @@ export async function chat(system: string, user: string, opts: { serial?: boolea
   return opts.serial ? serial(run) : run();
 }
 
-/** Parses a JSON reply, tolerating ```json fences. Throws on malformed JSON. */
-export function parseJson<T>(text: string): T {
-  return JSON.parse(text.replace(/```json|```/g, "").trim()) as T;
-}
+export { parseJson } from "./json.ts";
 
 export interface Transcript {
   text: string;
@@ -98,30 +100,3 @@ export async function transcribe(audio: Blob, filename = "answer.webm"): Promise
   return { text: data.text, words: data.words ?? [] };
 }
 
-/** v1 writing evaluation, now through chat(). Scales are replaced in the Writing ticket. */
-export async function evaluateWriting(text: string, prompt: string): Promise<feedbackResult> {
-  const system = `You are a professional native English tutor assisting Indonesian native speakers.
-Analyze the user's English writing response to the prompt: "${prompt}".
-Provide:
-1. A grammar correctness score out of 100.
-2. Estimated IELTS Writing Band (Float, 4.0 to 9.0, e.g. 6.5).
-3. Estimated TOEFL Writing Score (Int, 8 to 30).
-4. Detailed, encouraging feedback written in INDONESIAN language. Highlight grammatical mistakes, give exact corrections, explain the grammar rules in Indonesian, and suggest 3 better vocabulary words with their Indonesian translations.
-
-You MUST respond strictly with a JSON object in this exact format (no surrounding explanation, just JSON):
-{
-  "score": number,
-  "ieltsBand": number,
-  "toeflScore": number,
-  "feedback": "string (Markdown format in Indonesian)"
-}`;
-  const result = parseJson<Partial<feedbackResult>>(
-    await chat(system, `Prompt: "${prompt}"\nUser Submission: "${text}"`, { serial: true })
-  );
-  return {
-    score: Number(result.score) || 60,
-    ieltsBand: Number(result.ieltsBand) || 5.0,
-    toeflScore: Number(result.toeflScore) || 15,
-    feedback: String(result.feedback),
-  };
-}

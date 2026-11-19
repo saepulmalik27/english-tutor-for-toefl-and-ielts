@@ -7,87 +7,12 @@ generator client {
   provider = "prisma-client-js"
 }
 
+// The single Learner (Cloudflare Access is the only gate). Progress, bands and the streak are all
+// computed from practice data, so nothing else is stored here.
 model User {
-  id                String             @id @default(uuid())
-  streak            Int                @default(0)
-  lastActive        DateTime?
-  currentIeltsBand  Float              @default(4.0) // Estimated IELTS band (4.0 to 9.0)
-  currentToeflScore Int                @default(30)  // Estimated TOEFL score (30 to 120)
-  targetIeltsBand   Float              @default(6.5) // Target IELTS score
-  targetToeflScore  Int                @default(80)  // Target TOEFL score
-  isOnboarded       Boolean            @default(false)
-  createdAt         DateTime           @default(now())
-  
-  // Relations
-  journals          Journal[]
-  dailyMetrics      DailyMetric[]
-  
-  // Generated content relations
-  generatedLessons  GeneratedLesson[]
-  memory            UserMemory?
-}
-
-model DailyMetric {
   id          String   @id @default(uuid())
-  userId      String
-  date        String   // YYYY-MM-DD format for easy daily snapshots
-  ieltsBand   Float
-  toeflScore  Int
-  readingScore Float    // Component reading metric
-  writingScore Float    // Component writing metric
+  isOnboarded Boolean  @default(false)
   createdAt   DateTime @default(now())
-
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, date])
-}
-
-model Journal {
-  id          String   @id @default(uuid())
-  userId      String
-  prompt      String   // Writing prompt in English & Indonesian
-  userText    String   // User's submitted English text
-  feedback    String   // Markdown feedback from the AI/Tutor in Indonesian
-  score       Int      // Writing score (0-100)
-  ieltsBand   Float    // Estimated IELTS Writing Band (e.g., 5.5)
-  toeflScore  Int      // Estimated TOEFL Writing Score (e.g., 20)
-  createdAt   DateTime @default(now())
-  
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-}
-
-model Lesson {
-  id          String   @id @default(uuid())
-  title       String   // Title in Indonesian (e.g., "Memahami Present Continuous Tense")
-  category    String   // "Grammar", "Vocabulary", "Reading Tips"
-  difficulty  String   // "Basic", "Intermediate", "Advanced"
-  content     String   // Markdown content of the lesson in Indonesian
-  summary     String   // Short summary
-  createdAt   DateTime @default(now())
-}
-
-model UserMemory {
-  id               String   @id @default(uuid())
-  userId           String   @unique
-  weakGrammarRules String
-  weakVocabWords   String
-  interestTopics   String
-  lastCompressedAt DateTime @default(now())
-  updatedAt        DateTime @updatedAt
-
-  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-}
-
-model GeneratedLesson {
-  id          String   @id @default(uuid())
-  userId      String
-  title       String
-  category    String
-  content     String
-  summary     String
-  createdAt   DateTime @default(now())
-
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 // Latest x-ratelimit-* headers per AI source ("chat", "fallback", "stt"); shown on the dashboard.
@@ -107,6 +32,7 @@ enum ContentKind {
   speaking_p1
   speaking_p2
   speaking_p3
+  drill        // review drill for one Error Pattern (Question.patternId)
 }
 
 enum ContentStatus {
@@ -125,6 +51,7 @@ model Passage {
   sourceId  String?       // page id at the source; null for generated text
   sourceUrl String?
   license   String?       // shown with the passage (CC BY-SA 4.0 for Wikipedia)
+  generationAttempts Int  @default(0) // failed question-set attempts; retired after 3
   createdAt DateTime      @default(now())
 
   questions Question[]
@@ -137,15 +64,103 @@ model Question {
   id          String        @id @default(uuid())
   passageId   String?       // null for stand-alone prompts (Writing tasks, Speaking sets)
   kind        ContentKind
-  type        String        // e.g. tfng, completion, matching_headings
+  type        String        // e.g. tfng, sentence_completion, matching_headings
+  instructions String?      // IELTS rubric shared by the question's group
+  position    Int           @default(0)
   prompt      String
   options     Json?
   answer      String?
   explanation String?
   status      ContentStatus @default(active)
+  patternId   String?       // drills only: the Error Pattern this drill trains
   createdAt   DateTime      @default(now())
 
   passage     Passage?      @relation(fields: [passageId], references: [id], onDelete: Cascade)
+  answers     Answer[]
+  speakingAttempts SpeakingAttempt[]
+  writingAttempts  WritingAttempt[]
 
   @@index([kind, status])
+  @@index([patternId])
+}
+
+model Answer {
+  id         String   @id @default(uuid())
+  questionId String
+  given      String
+  correct    Boolean
+  createdAt  DateTime @default(now())
+
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@index([questionId])
+}
+
+// Error Pattern spaced repetition (PRD v2): one FSRS-6 card per taxonomy pattern (lib/patterns).
+model PatternCard {
+  patternId String   @id
+  card      Json     // ts-fsrs v6 card state
+  dueAt     DateTime
+  updatedAt DateTime @updatedAt
+
+  @@index([dueAt])
+}
+
+// Every time a pattern shows up in practice; the Weakness Profile counts these over 30 days.
+model PatternEvent {
+  id        String   @id @default(uuid())
+  patternId String   // taxonomy ID, or "other" with the LLM's label in note
+  source    String   // reading | speaking | writing | drill
+  note      String?
+  refId     String?  // e.g. the Question or Answer that produced it
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([patternId])
+}
+
+// One recorded Speaking answer. The audio itself is never stored (PRD v2): only what Whisper and the
+// scorer produced from it.
+model SpeakingAttempt {
+  id         String   @id @default(uuid())
+  questionId String
+  transcript String
+  words      Json     // Whisper word timestamps
+  metrics    Json     // fluency metrics computed in code
+  scores     Json     // { FC, LR, GRA: { band, reason } }
+  feedback   Json     // Indonesian Feedback
+  band       Float    // overall midpoint; shown as a ±1 range
+  createdAt  DateTime @default(now())
+
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@index([createdAt])
+}
+
+// One Writing Task 1 or 2 submission with its scores and Indonesian Feedback (replaces the v1 Journal).
+model WritingAttempt {
+  id         String   @id @default(uuid())
+  questionId String
+  text       String
+  wordCount  Int
+  scores     Json     // { TA|TR, CC, LR, GRA: { band, reason } }
+  feedback   Json     // Indonesian Feedback + Error Pattern tags
+  band       Float    // task band midpoint; shown as a ±1 range
+  createdAt  DateTime @default(now())
+
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@index([createdAt])
+}
+
+// One daily Practice Session per WIB day: the composed plan, the current block, and when it was finished.
+// The streak counts days with a completed session.
+model PracticeSession {
+  id          String    @id @default(uuid())
+  day         String    @unique // "YYYY-MM-DD" in WIB
+  plan        Json      // { blocks: [{ type, minutes }], reason }
+  step        Int       @default(0)
+  results     Json      @default("{}") // per-block notes for the summary
+  completedAt DateTime?
+  createdAt   DateTime  @default(now())
 }

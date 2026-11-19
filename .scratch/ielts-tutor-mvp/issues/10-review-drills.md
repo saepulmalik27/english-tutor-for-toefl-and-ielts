@@ -4,12 +4,12 @@
 
 **Blocked by:** 06
 
-**Status:** ready-for-agent
+**Status:** done (2026-11-18, not committed yet)
 
-- [ ] Drills go through the same quality check as other generated questions
-- [ ] Review block picks at most 2 due patterns, lowest retrievability first; backlog drains 2 per day
-- [ ] If nothing is due the block reports that (session composer later fills the slot)
-- [ ] Drill results map 0-1 correct -> Again, 2 -> Hard, 3 -> Good; Easy is never automatic
-- [ ] Selection and rating mapping are unit-tested
+- [x] Drills go through the same quality check as other generated questions
+- [x] Review block picks at most 2 due patterns, lowest retrievability first; backlog drains 2 per day
+- [x] If nothing is due the block reports that (session composer later fills the slot)
+- [x] Drill results map 0-1 correct -> Again, 2 -> Hard, 3 -> Good; Easy is never automatic
+- [x] Selection and rating mapping are unit-tested
 
 Source: `prd.md` v2 (approved 2026-11-18).

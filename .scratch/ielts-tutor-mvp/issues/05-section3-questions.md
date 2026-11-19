@@ -4,14 +4,14 @@
 
 **Blocked by:** 02, 04
 
-**Status:** ready-for-agent
+**Status:** done (2026-11-18, not committed yet)
 
-- [ ] Example table holds only ielts.org samples, stored unchanged; no IDP/British Council/ETS material
-- [ ] Each accepted passage has 13 questions in 3 types with answer keys
-- [ ] Quality check rejects questions the second call cannot answer to the key; rejected questions are never shown
-- [ ] Stock top-up generates only what is below 5 unused per kind and spends no quota when full
-- [ ] Answer flow follows prototype variant A: one question per screen, TFNG as three buttons, completion as input + check, Feedback immediately
-- [ ] Report bad question sets the question to retired
-- [ ] Quality check and top-up logic are unit-tested with the LLM stubbed
+- [x] Example table holds only ielts.org samples, stored unchanged; no IDP/British Council/ETS material
+- [x] Each accepted passage has 13 questions in 3 types with answer keys
+- [x] Quality check rejects questions the second call cannot answer to the key; rejected questions are never shown
+- [x] Stock top-up generates only what is below 5 unused per kind and spends no quota when full
+- [x] Answer flow follows prototype variant A: one question per screen, TFNG as three buttons, completion as input + check, Feedback immediately
+- [x] Report bad question sets the question to retired
+- [x] Quality check and top-up logic are unit-tested with the LLM stubbed
 
 Source: `prd.md` v2 (approved 2026-11-18).

@@ -4,11 +4,11 @@
 
 **Blocked by:** 03, 05
 
-**Status:** ready-for-agent
+**Status:** done (2026-11-18, not committed yet)
 
-- [ ] n8n workflow `english-tutor/nightly-job` calls the job endpoint internally with the secret header at 03:00 and is published
-- [ ] The old english-tutor/crawler-wikipedia workflow is deactivated
-- [ ] knowledge.english_tutor schema is dropped after the first successful app-side crawl
-- [ ] Workflow JSON is exported to n8n-automation-infra
+- [x] n8n workflow `english-tutor/nightly-job` calls the job endpoint internally with the secret header at 03:00 and is published
+- [x] The old english-tutor/crawler-wikipedia workflow is deactivated
+- [x] knowledge.english_tutor schema is dropped after the first successful app-side crawl
+- [x] Workflow JSON is exported to n8n-automation-infra
 
 Source: `prd.md` v2 (approved 2026-11-18).

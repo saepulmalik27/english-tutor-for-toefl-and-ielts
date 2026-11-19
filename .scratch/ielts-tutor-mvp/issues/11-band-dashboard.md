@@ -4,13 +4,13 @@
 
 **Blocked by:** 05, 07, 09
 
-**Status:** ready-for-agent
+**Status:** done (2026-11-18, not committed yet)
 
-- [ ] Reading band: last 80 questions, interpolated between 35/40 ~ 7 and 30/40 ~ 6, shown +-0.5
-- [ ] Writing/Speaking band: last 5 tasks, Task 2 weighted 2x, shown +-1
-- [ ] Lowest section = lowest midpoint; Listening excluded until it exists
-- [ ] Streak counts days with a completed session in WIB (Asia/Jakarta), not logins
-- [ ] Remaining Groq quota from the saved headers is shown
-- [ ] Band estimation is unit-tested
+- [x] Reading band: last 80 questions, interpolated between 35/40 ~ 7 and 30/40 ~ 6, shown +-0.5
+- [x] Writing/Speaking band: last 5 tasks, Task 2 weighted 2x, shown +-1
+- [x] Lowest section = lowest midpoint; Listening excluded until it exists
+- [x] Streak counts days with a completed session in WIB (Asia/Jakarta), not logins
+- [x] Remaining Groq quota from the saved headers is shown
+- [x] Band estimation is unit-tested
 
 Source: `prd.md` v2 (approved 2026-11-18).

@@ -4,10 +4,10 @@
 
 **Blocked by:** 12
 
-**Status:** ready-for-agent
+**Status:** done (2026-11-18, not committed yet)
 
-- [ ] No route, action or model from v1 remains without a caller
-- [ ] The app builds, lints and passes tests after removal
-- [ ] Prisma migration drops the removed tables
+- [x] No route, action or model from v1 remains without a caller
+- [x] The app builds, lints and passes tests after removal
+- [x] Prisma migration drops the removed tables
 
 Source: `prd.md` v2 (approved 2026-11-18).

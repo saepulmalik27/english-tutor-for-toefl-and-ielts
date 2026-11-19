@@ -4,14 +4,14 @@
 
 **Blocked by:** 07, 10, 11
 
-**Status:** ready-for-agent
+**Status:** done (2026-11-18, not committed yet)
 
-- [ ] Session order, screens and progress bar follow prototype variant A (kept on the prototype branch)
-- [ ] Composer applies the lowest-section rule, the twice-weekly Writing swap and the first-week rotation
-- [ ] Empty review slot becomes extra practice for the lowest section
-- [ ] Completing the session updates the streak in WIB
-- [ ] Old diagnostic onboarding is replaced by welcome + mic permission
-- [ ] Composer rules are unit-tested
-- [ ] Long Section 3 passages are checked on a phone; adjust the folded-text pattern if it doesn't work
+- [x] Session order, screens and progress bar follow prototype variant A (kept on the prototype branch)
+- [x] Composer applies the lowest-section rule, the twice-weekly Writing swap and the first-week rotation
+- [x] Empty review slot becomes extra practice for the lowest section
+- [x] Completing the session updates the streak in WIB
+- [x] Old diagnostic onboarding is replaced by welcome + mic permission
+- [x] Composer rules are unit-tested
+- [x] Long Section 3 passages are checked on a phone; adjust the folded-text pattern if it doesn't work
 
 Source: `prd.md` v2 (approved 2026-11-18).

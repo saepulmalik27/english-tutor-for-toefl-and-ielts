@@ -1,4 +1,5 @@
 import { getLearner } from "@/lib/learner";
+import { practiceStreak } from "@/lib/progress";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { 
@@ -7,7 +8,8 @@ import {
   BookOpenIcon, 
   PenToolIcon, 
   LayoutDashboardIcon, 
-  GraduationCapIcon
+  MicIcon,
+  RotateCcwIcon
   } from "lucide-react";
 
 export default async function DashboardLayout({
@@ -19,6 +21,7 @@ export default async function DashboardLayout({
   if (!user.isOnboarded) {
     redirect("/onboarding");
   }
+  const streak = await practiceStreak();
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 font-sans flex flex-col">
@@ -45,25 +48,32 @@ export default async function DashboardLayout({
               <span>Dashboard</span>
             </Link>
             <Link 
-              href="/dashboard/lessons" 
+              href="/dashboard/speaking" 
               className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-900 transition-all"
             >
-              <GraduationCapIcon className="size-4" />
-              <span>10% Materi</span>
+              <MicIcon className="size-4" />
+              <span>Berbicara</span>
+            </Link>
+            <Link 
+              href="/dashboard/review" 
+              className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-900 transition-all"
+            >
+              <RotateCcwIcon className="size-4" />
+              <span>Review</span>
             </Link>
             <Link 
               href="/dashboard/reading" 
               className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-900 transition-all"
             >
               <BookOpenIcon className="size-4" />
-              <span>70% Membaca</span>
+              <span>Membaca</span>
             </Link>
             <Link 
               href="/dashboard/writing" 
               className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-900 transition-all"
             >
               <PenToolIcon className="size-4" />
-              <span>70% Menulis</span>
+              <span>Menulis</span>
             </Link>
           </nav>
 
@@ -72,14 +82,7 @@ export default async function DashboardLayout({
             {/* Streak */}
             <div className="flex items-center gap-1 bg-amber-950/30 border border-amber-900/50 px-2.5 py-1 rounded-full text-amber-400 text-xs font-semibold" title="Active Streak">
               <FlameIcon className="size-3.5 fill-amber-500 stroke-amber-500 animate-pulse" />
-              <span>{user.streak} Hari</span>
-            </div>
-
-            {/* IELTS / TOEFL HUD Indicator */}
-            <div className="hidden lg:flex items-center gap-2 bg-slate-900 border border-slate-800 px-3 py-1 rounded-full text-xs text-slate-300">
-              <span className="font-semibold text-violet-400">IELTS: {user.currentIeltsBand.toFixed(1)}</span>
-              <span className="text-slate-600">|</span>
-              <span className="font-semibold text-emerald-400">TOEFL: {user.currentToeflScore}</span>
+              <span>{streak} Hari</span>
             </div>
 
           </div>
@@ -96,11 +99,18 @@ export default async function DashboardLayout({
           <span>Dashboard</span>
         </Link>
         <Link 
-          href="/dashboard/lessons" 
+          href="/dashboard/speaking" 
           className="flex flex-col items-center gap-1 px-2 py-1 text-slate-400 hover:text-white text-[10px] font-medium"
         >
-          <GraduationCapIcon className="size-4" />
-          <span>Materi</span>
+          <MicIcon className="size-4" />
+          <span>Berbicara</span>
+        </Link>
+        <Link 
+          href="/dashboard/review" 
+          className="flex flex-col items-center gap-1 px-2 py-1 text-slate-400 hover:text-white text-[10px] font-medium"
+        >
+          <RotateCcwIcon className="size-4" />
+          <span>Review</span>
         </Link>
         <Link 
           href="/dashboard/reading" 

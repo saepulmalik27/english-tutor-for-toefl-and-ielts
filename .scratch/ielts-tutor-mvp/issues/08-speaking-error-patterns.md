@@ -4,11 +4,11 @@
 
 **Blocked by:** 06, 07
 
-**Status:** ready-for-agent
+**Status:** done (2026-11-18, not committed yet)
 
-- [ ] Transcript segments carry pattern ID, original text and correction
-- [ ] Tapping a highlighted segment shows pattern name, correction and explanation
-- [ ] FC patterns (long pauses, fillers, over-correction, short answers) can be raised from the fluency metrics
-- [ ] Each tagged pattern creates a card or records Again
+- [x] Transcript segments carry pattern ID, original text and correction
+- [x] Tapping a highlighted segment shows pattern name, correction and explanation
+- [x] FC patterns (long pauses, fillers, over-correction, short answers) can be raised from the fluency metrics
+- [x] Each tagged pattern creates a card or records Again
 
 Source: `prd.md` v2 (approved 2026-11-18).

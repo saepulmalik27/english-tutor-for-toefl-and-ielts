@@ -39,11 +39,17 @@ Bisa mulai paralel: 01, 02, 03 (research), 05, 07, 09.
 
 - [Materi struktural di database](issues/05-materi-struktural.md): 35 materi per Error Pattern + ±20 panduan struktur per tipe tugas, penjelasan bahasa Indonesia; ditulis Claude saat development, diperiksa otomatis oleh gpt-oss (Learner hanya mereview bahasa Indonesia), Markdown di repo disinkronkan ke tabel `Material`; muncul di Feedback, Review, pustaka, dan sebelum Writing/Speaking; memuat 3 kesalahan Learner sendiri; membaca tidak memberi rating FSRS. Membuka ticket 06.
 - [Quiz cepat 5 menit](issues/06-quiz-cepat.md): 10 soal sekali ketuk (6 Error Pattern tersering + 4 kosakata IELTS B2–C1), Feedback langsung + tautan materi; salah dicatat ke Weakness Profile tanpa rating FSRS; tidak dihitung streak; jenis konten `quiz` diisi nightly job (±3 quiz/hari), soal tidak diulang, tanpa pembuatan mendadak; kartu kosakata per kata tetap ditunda.
+- [Sumber audio dan soal Listening](issues/01-sumber-audio-listening.md): script + 10 soal dari satu panggilan LLM dengan QC di kode; TTS self-hosted Kokoro-82M (GB/US) + MeloTTS EN-AU, fallback Cloudflare MeloTTS; audio TTS disimpan di disk VPS (bukan R2), dihapus 30 hari setelah dikerjakan, rekaman Learner tetap tidak disimpan; ±4 Part/minggu; VOA/LibriVox ditunda; spike TTS di VPS 2 OCPU sebelum implementasi.
+- [Penilaian pronunciation berbiaya nol](issues/02-penilaian-pronunciation.md): Azure Pronunciation Assessment F0 (akun berkartu, budget alert $0), en-US dengan prosody, ≤10 menit audio/hari dengan prioritas Checkpoint; fallback wav2vec2 di VPS hanya flag kata; P tampil sebagai rentang "estimasi"; tanpa penilai manusia berbayar.
+- [Kalibrasi skor LLM dan tabel band Reading/Listening](issues/03-kalibrasi-skor.md): tidak ada tabel 0–40 resmi, pakai titik rata-rata resmi + interpolasi ±0.5; 4 skrip Writing berskor ielts.org disimpan privat untuk cek kalibrasi lokal; descriptor resmi masuk prompt penilai; tanpa offset per kriteria dan tanpa Speak & Improve.
+- [Checkpoint mingguan untuk profiling](issues/04-checkpoint-mingguan.md): Sabtu (Listening 2 Part + Reading 1 section, ±42 menit) dan Minggu (Speaking mini-test + Writing Task 2 penuh, ±49 menit), menggantikan sesi hari itu; berwaktu tanpa Feedback sampai bagian selesai; band utama dashboard dari Checkpoint; kesalahan ikut FSRS. Membalik "tanpa diagnostic" PRD v2.
+- [Tipe soal IELTS GT yang belum ada](issues/07-tipe-soal-gt.md): QC Section 3 ≥ 11/13 dan alasan gagal disimpan; Reading Section 1–2 dibuat LLM; blok Reading S1 → S2 → separuh S3; daftar heading sekali; penghitung batas kata; register Task 1 bergiliran dan disembunyikan; pertanyaan lanjutan Part 2 paling akhir.
+- [Jadwal mingguan baru](issues/08-jadwal-mingguan.md): Senin–Kamis Speaking 15 + Reading/Listening 9 + Review 6, Jumat Speaking 10 + Task 1 20, akhir pekan Checkpoint; section terendah mendapat 3 dari 4 slot tengah; Materi tanpa slot sendiri; prototype diganti pengecekan saat implementasi.
+- [PWA, pengingat harian, dan observabilitas](issues/09-pwa-observabilitas.md): PWA installable, offline hanya Quick Quiz; pengingat Telegram via n8n 19:00 WIB bila sesi belum selesai; notifikasi job gagal dan uptime dari n8n; tabel `AppError`; antrean malam serial karena VPS 2 OCPU.
 
 ## Not yet specified
 
 - Voice chat real-time dengan AI untuk latihan Speaking.
-- Apakah Listening butuh penyimpanan audio dan batas kapasitas R2 gratis (diputuskan di ticket 01).
 
 ## Out of scope
 

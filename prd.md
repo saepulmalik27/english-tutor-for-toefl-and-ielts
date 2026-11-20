@@ -1,143 +1,219 @@
-# PRD v2: Zero-cost IELTS General Training Tutor
+# PRD v3: Zero-cost IELTS General Training Tutor
 
-Status: approved by the Learner (2026-11-18). Replaces PRD v1 (TOEFL/IELTS Academic, multi-user, 10-20-70 lessons), which is in git history.
+Status: written 2026-11-20 from the resolved phase-2 tickets 01–09, waiting for the Learner's approval (ticket 10). Replaces PRD v2 (approved 2026-11-18), which is in git history.
 
-Every decision here comes from the wayfinder map `.scratch/zero-cost-toefl-tutor/map.md`; the ticket behind each one is linked so the reasoning can be traced. Terms follow `GLOSSARY.md` (Learner, Target Exam, Skill, Error Pattern, Weakness Profile, Practice Session, Speaking Task, Feedback).
+Every decision comes from the wayfinder maps `.scratch/zero-cost-toefl-tutor/map.md` (v2) and `.scratch/ielts-tutor-phase2/map.md` (phase 2); the ticket behind each one is linked. Terms follow `GLOSSARY.md` (Learner, Target Exam, Skill, Error Pattern, Weakness Profile, Practice Session, Speaking Task, Feedback) plus the phase-2 terms Checkpoint, Material, Quick Quiz, Listening Part and Word limit.
 
 ## Problem Statement
 
-The Learner, an Indonesian software engineer applying for jobs in Singapore and Australia, needs an IELTS General Training (computer-delivered) score of **7 in every section** (6 as the safe floor) for an Australian work visa, with the test around **May 2027** ([07](.scratch/zero-cost-toefl-tutor/issues/07-target-skor-tenggat.md)). Courses cost money, generic apps don't adapt to the Learner's own recurring mistakes, and speaking practice with feedback is the hardest part to get alone. The budget for infrastructure is **zero rupiah per month**.
+The Learner, an Indonesian software engineer applying for jobs in Singapore and Australia, needs an IELTS General Training (computer-delivered) score of **7 in every section** (6 as the safe floor) for an Australian work visa, with the test around **May 2027**. Courses cost money, generic apps don't adapt to the Learner's own recurring mistakes, and speaking practice with feedback is the hardest part to get alone. The budget for infrastructure is **zero rupiah per month**.
+
+The MVP (live at `tutor.saepulmalik.my.id` since 2026-11-19) covers Speaking, Reading Section 3, Writing and Error Pattern review. Phase 2 closes the gaps that stop the app from measuring and training all four sections: no Listening, no Pronunciation score (25% of the Speaking band), no exam-condition measurement of progress, no readable explanations beyond one-line hints, no Reading Section 1–2, and no way to practise in a five-minute gap.
 
 ## Solution
 
-A private, single-Learner tutor (a PWA on phone and laptop) built around one **30-minute daily Practice Session**: Speaking first, then Reading, then a review of the Learner's own weakest Error Patterns. Every answer gets immediate Feedback in Indonesian. Mistakes are tagged with a fixed set of Error Patterns; each pattern becomes a spaced-repetition card (FSRS-6) that comes back as fresh drills until it sticks. Content comes from an original question bank generated nightly by an LLM, with Reading Section 3 passages crawled from open-licence Wikipedia articles. Everything runs on the Learner's existing Oracle VPS and free AI tiers.
+A private, single-Learner tutor (a PWA on phone and laptop) built around a **daily Practice Session of about 30 minutes**: Speaking first, then Reading, Listening or Writing, then a review of the Learner's own weakest Error Patterns. On the weekend a **Checkpoint** measures every section under exam conditions and drives the dashboard band and the weekly trend. A **Quick Quiz** of ten one-tap questions fills spare minutes. Every answer gets Feedback in Indonesian, linked to a **Material** that explains the Error Pattern or task structure. Mistakes are tagged with a fixed set of Error Patterns; each pattern is an FSRS-6 card that comes back as fresh drills. Content comes from an original question bank generated nightly by an LLM (Listening audio read by self-hosted TTS), with Reading Section 3 passages crawled from open-licence Wikipedia articles. Everything runs on the Learner's existing Oracle VPS and free AI tiers.
 
 ## User Stories
 
-1. As the Learner, I open the app and see today's session, which section is my lowest right now, and why the session focuses on it.
-2. As the Learner, I go through a fixed order (Speaking → Reading → Review), one item per screen, with a three-part progress bar.
-3. As the Learner, I get an IELTS Speaking Part 1, 2 or 3 task (rotating), prepare with a cue card and optional notes, then record my answer with a visible timer and can play it back.
-4. As the Learner, right after speaking I see my estimated Speaking band as a range, a card per criterion (FC, LR, GRA; Pronunciation "not scored yet"), fluency facts (words per minute, long pauses, fillers), and my transcript with mistakes highlighted; tapping one shows the Error Pattern, the correction and an explanation in Indonesian.
-5. As the Learner, I answer Reading questions in IELTS GT formats (TFNG, completion with a word limit, matching headings and others) and see right/wrong plus an Indonesian explanation after each one.
-6. As the Learner, I get up to two of my due Error Patterns as fresh drills (three each) in the review block, so old mistakes come back before I forget them.
-7. As the Learner, when Writing is my lowest section, Writing Task 1 replaces the Reading block twice a week; otherwise I can do Writing Task 1 or 2 as an optional extra.
-8. As the Learner, I get Writing Feedback per IELTS criterion (TA/TR, CC, LR, GRA) with tagged Error Patterns, the same way as Speaking.
-9. As the Learner, I see an end-of-session summary: results per block, streak +1, and tomorrow's focus.
-10. As the Learner, I see a dashboard with my estimated band range per section, my lowest section, my most frequent Error Patterns, my streak, and how much of today's Groq quota is left.
-11. As the Learner, I can report a bad question; it is retired immediately.
-12. As the Learner, my first week rotates through every Skill so the app has data for every section; there is no separate diagnostic test.
-13. As the Learner, I reach the app at `tutor.saepulmalik.my.id` after an email one-time code, and stay signed in for 30 days.
+1. As the Learner, I open the app and see today's session, my lowest section, and why the session focuses on it.
+2. As the Learner, I go through a fixed order (Speaking → middle block → Review), one item per screen, with a progress bar.
+3. As the Learner, I get an IELTS Speaking Part 1, 2 or 3 task (rotating), prepare a Part 2 cue card for one minute with notes, then record with a visible timer and can play it back.
+4. As the Learner, right after speaking I see my estimated Speaking band as a range, a card per criterion (FC, LR, GRA, and Pronunciation as a labelled estimate), fluency facts, my transcript with mistakes highlighted, and words that may be mispronounced; tapping a mistake shows the Error Pattern, the correction, an Indonesian explanation and a "Baca materi" link.
+5. As the Learner, I answer Reading questions in IELTS GT formats (Section 1 everyday texts, Section 2 work texts, Section 3 long passages; TFNG, matching headings, completion with a word limit and others) and see right/wrong plus an Indonesian explanation after each one.
+6. As the Learner, I listen once to an IELTS-style Listening Part (dialogue or monologue, British, Australian or American voices) and answer its ten questions while it plays.
+7. As the Learner, I get up to two of my due Error Patterns as fresh drills (three each) in the review block, with the pattern's Material summary folded above them.
+8. As the Learner, I write a Writing Task 1 letter every Friday and a Task 2 essay in the Sunday Checkpoint, and get Feedback per IELTS criterion with tagged Error Patterns; Task 1 Feedback names the register the recipient called for.
+9. As the Learner, on the weekend I take a timed Checkpoint without Feedback until each part ends, then see results per section and my weekly trend.
+10. As the Learner, I open a Quick Quiz of ten one-tap questions any time, see right/wrong with a short Indonesian explanation after each, and a score at the end.
+11. As the Learner, I browse a library of Materials per Skill, most frequent patterns first, with unread ones marked, each showing three of my own recent mistakes.
+12. As the Learner, I see a dashboard with my band range per section (from the Checkpoint, practice band beside it), a weekly trend chart, my lowest section, frequent Error Patterns, streak, Quick Quiz stock, and today's remaining Groq and Azure quota.
+13. As the Learner, I can report a bad question or a Material; a question is retired immediately, a Material is marked "Dilaporkan, menunggu perbaikan".
+14. As the Learner, I install the app on my phone, take a Quick Quiz offline, and get a Telegram reminder in the evening if today's session isn't done.
+15. As the Learner, I reach the app at `tutor.saepulmalik.my.id` after an email one-time code, and stay signed in for 30 days.
 
 ## Implementation Decisions
 
-### Target Exam and scoring ([07](.scratch/zero-cost-toefl-tutor/issues/07-target-skor-tenggat.md), [14](.scratch/zero-cost-toefl-tutor/issues/14-format-ielts-gt.md))
+### Target Exam and scoring (v2 [07](.scratch/zero-cost-toefl-tutor/issues/07-target-skor-tenggat.md), [14](.scratch/zero-cost-toefl-tutor/issues/14-format-ielts-gt.md); phase 2 [02](.scratch/ielts-tutor-phase2/issues/02-penilaian-pronunciation.md), [03](.scratch/ielts-tutor-phase2/issues/03-kalibrasi-skor.md))
 
-- Target Exam: IELTS General Training, computer-delivered. TOEFL and IELTS Academic are removed from the app, including every 0–120 and 0–30 score field.
-- Speaking and Writing are scored per IELTS criterion on 0–9 by the LLM against the public ielts.org band descriptors. Fluency metrics (WPM, pauses ≥0.5 s, mean length of run, filler rate) are computed in code from Whisper word timestamps and handed to the LLM as facts ([05](.scratch/zero-cost-toefl-tutor/issues/05-rujukan-speaking-scoring.md)).
-- Pronunciation is shown as "not scored yet" in the MVP.
-- Feedback in Indonesian is written in a separate step after the scores are final.
+- Target Exam: IELTS General Training, computer-delivered. No TOEFL or IELTS Academic scales.
+- Speaking and Writing are scored per IELTS criterion on 0–9 by the LLM; fluency metrics come from Whisper word timestamps in code (unchanged).
+- **Scorer prompts use the official ielts.org descriptor text for bands 5–8 per criterion, unchanged, kept privately** instead of the current hand-written criterion summaries. ([03](.scratch/ielts-tutor-phase2/issues/03-kalibrasi-skor.md))
+- **Calibration check:** the four relevant ielts.org scored Writing scripts are kept privately and unchanged in `content/private/` (gitignored). A local script scores them (GT Task 1 band 5.5, GT Task 2 band 5, Academic Task 2 bands 5.5 and 7.5; overall bands only, no per-criterion scores) five times each and reports bias, MAE and spread. Prompts are fixed first; a global offset only if a consistent bias remains. No per-criterion offset, because no official per-criterion data exists. Rerun whenever the scorer prompt or model changes. Speaking has no official scored samples; only consistency is checked.
+- **Pronunciation** ([02](.scratch/ielts-tutor-phase2/issues/02-penilaian-pronunciation.md)): primary Azure AI Speech Pronunciation Assessment on a Free F0 resource, `en-US` with prosody, (5 audio hours/month ≈ 10 minutes of answer audio a day, so a daily audio budget is enforced and Checkpoint audio has priority). Scripted assessment with the Whisper transcript as reference text, audio chunked at Whisper word gaps to ≤30 s per REST request, webm/opus remuxed to ogg. Microsoft states real-time PA data is not stored. Prosody exists only for en-US; IELTS requires no accent, so Azure's native-speaker scores are not read as bands directly. Band 7 is claimed only when band-6 features are consistent and at least one band-8 signal appears over several sessions; thresholds stay heuristic (no paid human rater). Fallback: `wav2vec2-lv-60-espeak-cv-ft` phoneme model on the VPS, run in the background, flags only "kata mungkin salah ucap", no band. Pronunciation is shown as a range labelled "estimasi"; connected speech and intonation for meaning stay "tidak dinilai". A Speaking band without a Pronunciation estimate keeps the "P belum dinilai" note.
+- Feedback in Indonesian is written in a separate step after the scores are final (unchanged).
 
-### Band estimates ([09](.scratch/zero-cost-toefl-tutor/issues/09-model-personalisasi.md))
+### Band estimates (v2 [09](.scratch/zero-cost-toefl-tutor/issues/09-model-personalisasi.md); phase 2 [03](.scratch/ielts-tutor-phase2/issues/03-kalibrasi-skor.md), [04](.scratch/ielts-tutor-phase2/issues/04-checkpoint-mingguan.md))
 
-Always shown as a range, never a single number.
-- Reading: % correct over the last 80 questions, mapped through IELTS GT raw→band points (35/40 ≈ 7, 30/40 ≈ 6, interpolated), ±0.5.
-- Writing and Speaking: average of per-criterion scores over the last 5 tasks, Writing Task 2 weighted 2×, ±1.
-- Listening: "no data yet".
-- Lowest section = the lowest midpoint; it drives the session focus.
+Always a range, never a single number. ielts.org publishes only **average** raw→band points that "vary slightly from test version to test version"; no complete official 0–40 table exists, and questions written by the LLM are not difficulty-calibrated.
+- Reading GT: official points 15→4, 23→5, 30→6, 35→7, interpolated; 0 and 40 are extrapolated (comment in `lib/bands.ts` says so). ±0.5.
+- Listening: official points 16→5, 23→6, 30→7, 35→8, interpolated, extrapolated to 0 and 40. ±0.5.
+- Writing and Speaking: per-criterion averages as in v2, ±1; Writing may narrow to ±0.5 once the calibration check shows MAE ≤ 0.5.
+- **Headline band per section = the Checkpoint** (mean of the last two Checkpoints for that section), labelled with its date; the practice band is shown smaller beside it.
+- Lowest section = lowest midpoint, from Checkpoint bands when a Checkpoint exists in the last 3 weeks, otherwise practice bands.
+- Weekly trend chart per section with target 7 and floor 6 lines, and a marker where the scorer prompt or model changed.
+- The official result of the real test is entered by hand as a calibration point; no paid mock or human rater.
 
-### Personalisation ([09](.scratch/zero-cost-toefl-tutor/issues/09-model-personalisasi.md))
+### Personalisation (v2 [09](.scratch/zero-cost-toefl-tutor/issues/09-model-personalisasi.md), unchanged)
 
-- **Error Pattern taxonomy:** a fixed, hand-curated list of about 35 patterns, each tagged with a Skill and an IELTS criterion (GRA, LR, CC, TA/TR, FC, Reading). The LLM may only return IDs from the list; anything else is `other` with a note, which can be promoted to a new pattern.
-- **FSRS cards:** one card per Error Pattern, not per question. `ts-fsrs` v6 with `version: 'FSRS-6'`, default parameters, desired retention 0.9.
-- **Ratings:** card created on the first occurrence. Drills (3 items): 0–1 correct → Again, 2 → Hard, 3 → Good; Easy is never automatic. The pattern appearing again in regular practice → Again. Not appearing → nothing recorded.
-- **Weakness Profile** is computed from the data on each request (band per Skill, pattern frequency over 30 days, FSRS retrievability). Nothing is stored or summarised by an LLM; `UserMemory` is removed.
+- Fixed taxonomy of about 35 Error Patterns tagged with Skill and IELTS criterion; unknown IDs fall to `other`.
+- One FSRS-6 card per pattern (`ts-fsrs` v6, default parameters, retention 0.9). Drills 0–1 → Again, 2 → Hard, 3 → Good. A pattern appearing again in practice or a Checkpoint → Again. Quick Quiz and reading a Material never rate a card.
+- Weakness Profile computed from data on each request.
 
-### Practice Session ([09](.scratch/zero-cost-toefl-tutor/issues/09-model-personalisasi.md), [10](.scratch/zero-cost-toefl-tutor/issues/10-alur-practice-session.md))
+### Practice Session and weekly schedule (v2 [10](.scratch/zero-cost-toefl-tutor/issues/10-alur-practice-session.md); phase 2 [08](.scratch/ielts-tutor-phase2/issues/08-jadwal-mingguan.md))
 
-- Daily: Speaking 15 min (one Part, rotating P1 → P2 → P3) + Reading 9 min (a Section 1–2 text or half a Section 3 passage) + Review 6 min.
-- If Writing is the lowest section, Task 1 (20 min) replaces Reading on 2 days a week. Otherwise Writing is an optional extra twice a week (Task 1 one day, Task 2 another).
-- Review: at most 2 due Error Patterns per day, lowest retrievability first, 3 drills each. If none are due, the slot becomes extra practice for the lowest section. A backlog after missed days is drained 2 a day.
-- First 7 days: sessions rotate evenly through every Skill (including one Task 1 and one Task 2). Onboarding is a welcome screen plus microphone permission.
-- Streak counts a day with a completed session, in WIB (Asia/Jakarta), not a login (approved with this PRD; v1 counted logins in UTC).
-- UI: prototype variant A "step by step" (fixed order, one item per screen, immediate Feedback, band-range card, criterion cards, tappable transcript). The prototype code is kept on a throwaway branch, not in `main`.
+Default week (Writing not the lowest section); Quick Quiz is outside the table. Weekend sessions run over 30 minutes by the Learner's choice:
 
-### Question bank ([11](.scratch/zero-cost-toefl-tutor/issues/11-pipeline-bank-soal.md), [04](.scratch/zero-cost-toefl-tutor/issues/04-sumber-materi-crawler.md), [14](.scratch/zero-cost-toefl-tutor/issues/14-format-ielts-gt.md))
+| Day | Blocks | Minutes |
+|---|---|---|
+| Mon | Speaking 15 · Reading 9 · Review 6 | 30 |
+| Tue | Speaking 15 · Listening 9 (one Part) · Review 6 | 30 |
+| Wed | Speaking 15 · Reading 9 · Review 6 | 30 |
+| Thu | Speaking 15 · Listening 9 (one Part) · Review 6 | 30 |
+| Fri | Speaking 10 (Part 1) · Writing Task 1 20 | 30 |
+| Sat | Checkpoint A: Listening 2 Parts 16 + Reading one section 20 · Review 6 (max 3 patterns) | ±42 |
+| Sun | Checkpoint B: Speaking mini-test 9 + Writing Task 2 40 | ±49 |
 
-- **Crawled:** only Reading Section 3 passages, from English Wikipedia Good articles via `list=search&srsort=random` with `incategory:Good_articles -incategory:Living_people articletopic:stem|environment|society|history|education|psychology`. At least 700 words, cut at whole paragraphs to about 900. Text is kept unchanged; title, URL and CC BY-SA 4.0 licence are shown with it.
-- **Generated by the LLM** from the official IELTS task descriptions: Reading Section 1–2 texts, Writing Task 1/2 prompts, Speaking Part 1/2/3 sets, Section 3 question sets (13 questions in 3 types), and Error Pattern drills (format matched to the pattern type).
-- **No RAG, no embeddings.** Each prompt includes 1–2 official ielts.org examples per question type from a small hand-curated table.
-- **Licence:** ielts.org samples are kept privately, unchanged, only as prompt examples. IDP, British Council and ETS material is never stored or crawled. Every question in the app is original.
-- **Nightly job** in the app (`POST /api/jobs/generate`, secret header, called by n8n over the internal Docker network): crawl, top up every content kind to at least 5 unused items, generate 3 drills for each card due in the next 2 days.
-- **Quality:** a second LLM call answers each question from the passage alone; mismatches and ambiguous questions are rejected. "Report bad question" retires a question.
-- **Data model:** one `Passage` and one `Question` (`kind`, `status` active/retired, `source` attribution) replace `Article/Question` and `GeneratedArticle/GeneratedQuestion/GeneratedProgress`.
-- Interim: the n8n workflow `english-tutor/crawler-wikipedia` (repo `n8n-automation-infra`) writes to `knowledge.english_tutor.passages` until the app is deployed. Then crawling moves into the app job, n8n only triggers it, nothing is imported, and that schema is dropped.
+- The Reading block rotates Section 1 → Section 2 → half a Section 3 passage. ([07](.scratch/ielts-tutor-phase2/issues/07-tipe-soal-gt.md))
+- Lowest-section rule: the four Mon–Thu middle slots default to 2 Reading / 2 Listening; the lower of the two gets 3. If Writing is lowest, one Mon–Thu slot becomes Writing Task 1 (Review skipped that day). If Speaking is lowest, an empty Review slot becomes extra Speaking and Friday keeps Speaking at 15.
+- Review: at most 2 due patterns per day, lowest retrievability first, 3 drills each; Saturday 3. Backlog drains as in v2.
+- If a Listening Part isn't ready (TTS failed), the Listening block falls back to Reading.
+- First 7 days: v2 rotation plus two Listening blocks; the first Checkpoint after it is the baseline.
+- Streak counts a completed session or Checkpoint day in WIB; Quick Quiz does not count.
+- Materials have no slot of their own: they appear in Feedback, folded above Review drills, before Writing and Speaking Part 2, and in the library.
+- UI: prototype variant A. No separate prototype before implementation; during implementation check the composer fixtures, the Listening block and the Checkpoint on a phone, the two-band dashboard, and real minutes per block over one week of use. If Friday without Review or Sunday's ±49 minutes proves too heavy, Writing Task 1 and Task 2 alternate weekly.
 
-### Stack and hosting ([08](.scratch/zero-cost-toefl-tutor/issues/08-arsitektur-stack-0-cost.md), [02](.scratch/zero-cost-toefl-tutor/issues/02-stack-ai-gratis.md), [03](.scratch/zero-cost-toefl-tutor/issues/03-hosting-db-gratis.md))
+### Checkpoint ([04](.scratch/ielts-tutor-phase2/issues/04-checkpoint-mingguan.md))
+
+Reverses v2's "no separate diagnostic": daily-practice bands are measured with immediate Feedback, half passages and no timer, which steers practice but doesn't measure progress towards the test. A Checkpoint is a repeated weekly measurement, not a one-off diagnostic.
+- Two parts on the weekend, each replacing that day's session (table above). Before Listening exists, Checkpoint A is Reading only.
+- Timed per part, auto-submit at time-out, no Feedback until the part ends, no going back to an earlier part, Listening audio played once. Pausing is allowed only between parts. Full Feedback on the results screen.
+- Speaking mini-test: three Part 1 questions, one Part 2 card with one-minute preparation, two Part 3 questions; one score per criterion from the combined transcript.
+- No separate question bank: Checkpoint takes unused items from the same bank; Friday's nightly run makes sure the needed stock exists. Answers carry a `checkpointId` so Checkpoint and practice bands stay separate.
+- New `Checkpoint` record: date, part A/B, band per section, scorer prompt version, duration.
+- Missed: can be taken on Monday, then skipped until the next weekend.
+
+### Listening ([01](.scratch/ielts-tutor-phase2/issues/01-sumber-audio-listening.md))
+
+- **Script and questions:** the LLM writes the Part script (speaker segments with voice and accent) and ten questions in one JSON call, following the official Part 1–4 descriptions and question types (form/note/table completion with word limits, multiple choice, matching, short answer; plan/map labelling deferred to a second iteration). Code picks the Part, question types, topic and voices. Distractors follow IELTS habits (self-corrections, changed numbers, spelled names). Quality check in code, no second LLM call: completion answers appear verbatim in the script within the word limit, answer positions follow question order, choice answers are among the options, script length in range; retried like Reading.
+- **Audio:** self-hosted TTS on the VPS: Kokoro-82M (Apache-2.0) for British and American voices, MeloTTS `EN-AU` (MIT) for Australian; two clearly different voices for Parts 1 and 3. Fallback Cloudflare `@cf/myshell-ai/melotts`; if both fail, the Part waits for the next night (no browser `speechSynthesis`). New `tts` container.
+- **Storage:** reverses v2's "audio not stored" **only for system-generated TTS audio**: Opus 32 kbps files on a VPS Docker volume (≈0.6 GB until May 2027), served by the app behind Cloudflare Access. The script and voice settings in Postgres are the source of truth; files are a rebuildable cache, are not backed up, and are deleted 30 days after the Part is done. Not R2. The Learner's own recordings are still never stored.
+- **Volume:** about 4 Parts a week (2 daily blocks + 2 in Checkpoint A), so ≈0.6 Part per night; ≈5K Groq tokens per Part, run serially.
+- **Capacity risk:** the VPS is Oracle A1 **2 OCPU / 12 GB**, shared by Next.js, Postgres, n8n, the TTS container and the pronunciation fallback. TTS speed on 2 Ampere cores is **not measured yet** (see Open Questions). The MeloTTS AU voice is used if it is clearly understandable in that spike; otherwise fewer Parts use the AU accent. TTS runs after text generation in the same serial nightly queue, with a time limit.
+- VOA/LibriVox dictation: deferred.
+
+### Pronunciation pipeline ([02](.scratch/ielts-tutor-phase2/issues/02-penilaian-pronunciation.md))
+
+- Runs after STT in the Speaking flow; the audio is held in memory only for the Azure call, then discarded (as in v2).
+- Daily Azure audio budget tracked in `AiQuota`; over budget → the fallback flags only, no Pronunciation estimate that day.
+- The wav2vec2 fallback runs in the background on the VPS (2 OCPU) and must be benchmarked before it is enabled; it never blocks the Speaking Feedback screen.
+- The Learner accepted a card-backed Azure account upgraded to pay-as-you-go after 30 days; the F0 tier plus a $0 budget alert in Cost Management keep the cost at zero.
+- For the background fallback the audio is held in a temporary file only until the fallback has run, then deleted; it is never kept as a recording.
+
+### Material ([05](.scratch/ielts-tutor-phase2/issues/05-materi-struktural.md), resolved)
+
+Reverses v2's "lessons folded into Feedback": a one-line hint is too short to learn the rule, but Material is tied to Error Patterns and task types, appears when the weakness or task appears, and shows the Learner's own mistakes, unlike the v1 general curriculum.
+- 35 pattern Materials (one per taxonomy pattern, test fails if one is missing) + about 20 structure guides (Task 1 per register, Task 2 per essay type, Speaking Parts 1–3, Reading strategy per question type; Listening guides after Listening exists).
+- Indonesian explanations; terms, examples and templates in English. All original; may paraphrase ielts.org descriptors; nothing copied from British Council, IDP or prep books.
+- Written by Claude during development, checked by a local gpt-oss script (correct examples grammatical, wrong examples show the pattern, explanation matches examples); the Learner reviews only the Indonesian. Report button in the app.
+- Source of truth: Markdown in `content/materials/patterns/<pattern-id>.md` and `content/materials/guides/<slug>.md`, upserted into a `Material` table by slug on container start; removed files → `retired`. Change = redeploy; no admin page.
+- Pattern Material ≤ ±300 words (summary = `hint`, explanation, wrong → right examples, IELTS tips, three latest own mistakes). Guide ≤ ±600 words with an original annotated band-7 answer.
+- Shown in Feedback ("Baca materi"), folded above Review drills, in the library `/dashboard/materi`, and before Writing Task 1/2 and Speaking Part 2. `lastReadAt` per Material; reading never rates FSRS. Not included in drill prompts.
+- Batch 1: pattern Materials + data model, sync, library, Feedback/Review links, report. Batch 2: guides + links from Writing/Speaking.
+
+### Quick Quiz ([06](.scratch/ielts-tutor-phase2/issues/06-quiz-cepat.md), resolved)
+
+- 10 one-tap questions: 6 on the Learner's most frequent Error Patterns over 30 days + 4 IELTS vocabulary (collocation, paraphrase, word form; B2–C1, rotating IELTS topics). One per screen, ±30 s each, immediate right/wrong + 1–2 Indonesian sentences + Material link; score x/10. Reuses `QuestionFlow`.
+- Wrong pattern answers add a pattern occurrence to the Weakness Profile but never rate or create FSRS cards. Not counted for the streak.
+- New content kind `quiz` (`patternId` empty = vocabulary). Nightly stock: ≥5 unused per top-6 pattern, ≥20 vocabulary, ~10 per LLM call, same quality check. Each question is used once. No on-demand generation; the button shows remaining quizzes or "Stok habis, terisi lagi besok pagi".
+- Per-word vocabulary cards stay deferred.
+
+### Question bank (v2 [11](.scratch/zero-cost-toefl-tutor/issues/11-pipeline-bank-soal.md); phase 2 [07](.scratch/ielts-tutor-phase2/issues/07-tipe-soal-gt.md))
+
+Unchanged from v2: Wikipedia Good-article crawl for Section 3 only, LLM-generated everything else, no RAG, 1–2 ielts.org examples per question type in prompts, ielts.org samples kept private and unchanged, every app question original, nightly job in the app triggered by n8n, second-LLM quality check, report retires a question, one `Passage`/`Question` model.
+
+Phase 2 changes:
+- **Section 3 quality check:** today a set is kept only if all 13 questions pass, so at ~95% per question only about half of the sets survive (2 of 5 passed on 2026-11-19; the per-passage reasons were not available when this was decided). Decided: keep a set when ≥11 of 13 pass, drop failed questions and renumber; if one type group loses more than 2, regenerate that group once in the same run. Store the last failure reason per passage (`lastGenerationError`) and per-question reasons in the job result.
+- **Reading Section 1–2:** generated by the LLM with their questions in one call. Section 1: 2–3 short everyday texts (adverts, timetables, notices). Section 2: 2 work texts (job descriptions, staff policies, training material). 7 questions each, keep when ≥6 pass. Stock ≥5 per kind.
+- **Matching headings screen:** the heading list (roman numerals) shows once, folded above the group, instead of as buttons on every question.
+- **Completion:** the word limit from the instructions and a live word counter on the input; over-limit answers are accepted for submission and marked wrong with "melebihi batas kata" (`R.word-limit`).
+- **Writing Task 1 register:** code picks the register in rotation (formal, semi-formal, informal) and stores it on the question; not shown before writing; TA Feedback names the expected register.
+- **Speaking Part 2:** keeps the existing 1-minute preparation and notes; adds one short follow-up question generated with the cue card (lowest priority).
+- **New content kinds:** `quiz`, `listening_p1`–`listening_p4`; `reading_s1`/`reading_s2` get generators.
+- **Nightly load:** Groq 8K TPM is already often exhausted; every new kind runs serially, with Cloudflare fallback. Per-night additions: Quick Quiz (~3 quizzes/day), ~1 Section 1–2 text, ~0.6 Listening Part (+TTS), Friday Checkpoint stock. The job logs duration per step.
+
+### PWA, reminders and observability ([09](.scratch/ielts-tutor-phase2/issues/09-pwa-observabilitas.md))
+
+- Installable PWA: manifest, icons, minimal service worker (static assets and app shell). Risk to test first: Cloudflare Access blocks the manifest fetch; try `crossorigin="use-credentials"`, and only if install still fails, an Access bypass for the manifest and icons only.
+- Offline: Quick Quiz only (one quiz cached with keys and explanations, answers queued in IndexedDB and sent once online). Everything else needs the server.
+- Daily reminder: n8n sends a Telegram message from a private bot at 19:00 WIB only if today's session isn't complete (internal status endpoint with the job secret). No web push, no email.
+- Nightly job alerts: n8n checks the job response and sends Telegram when the HTTP status fails, a content kind stays under target, or Section 3 sets fail; silent on full success. n8n Error Trigger for crashed workflows. Alert when the job runs over 60 minutes or is still running at 06:00 WIB (2-OCPU capacity).
+- Uptime: n8n pings `http://app:3000/api/health` (app + DB) every 15 minutes over the internal network; two failures in a row → Telegram. External checker (UptimeRobot) only if the tunnel ever fails unnoticed.
+- Error log: `docker logs` plus a small `AppError` table (time, place, message), pruned after 30 days; a non-zero 24-hour count goes into the daily Telegram summary. No Sentry or other new account.
+
+### Stack and hosting (v2 [08](.scratch/zero-cost-toefl-tutor/issues/08-arsitektur-stack-0-cost.md), [02](.scratch/zero-cost-toefl-tutor/issues/02-stack-ai-gratis.md), [03](.scratch/zero-cost-toefl-tutor/issues/03-hosting-db-gratis.md); phase 2 changes marked)
 
 | Area | Decision |
 |---|---|
-| App | Next.js 16 + Prisma 6 on the existing Oracle VPS (Pay-As-You-Go, no idle reclaim), as an `app` service in `n8n-automation-infra`'s `stack/docker-compose.yml`, bound to `127.0.0.1`, Node 24 LTS image |
-| Access | Cloudflare Tunnel + Access (email OTP, 30-day session) at `tutor.saepulmalik.my.id`; the app's JWT login, bcrypt, signup and login pages are removed |
-| Database | Own database `english_tutor` in the VPS's Postgres/pgvector container; fresh initial Prisma migration; `prisma migrate deploy` on container start |
-| Local dev | Postgres container with `pgvector/pgvector:0.8.1-pg17`; dev never touches the VPS database |
-| Deploy | `scripts/deploy.sh`: buildx arm64 image on the laptop → `docker save \| ssh oracle-n8n docker load` → `compose up -d app` |
-| LLM | Groq `openai/gpt-oss-120b`; automatic fallback to Cloudflare Workers AI `@cf/openai/gpt-oss-120b` on 429/5xx; scoring calls run one at a time (8K TPM) |
-| STT | Groq `whisper-large-v3` with word timestamps, called with `fetch` + `FormData`; no fallback, a failure means "try again" |
-| AI code | LangChain only inside `lib/ai.ts` (`initChatModel`, provider and model from env); `@langchain/google-genai` and the provider picker in the UI are removed; API keys only in server env |
-| TTS | Browser `speechSynthesis` |
-| Audio | Not stored; only transcript, word timestamps and fluency metrics |
+| App | Next.js 16 + Prisma 6 on the existing Oracle VPS (A1, **2 OCPU / 12 GB**, Pay-As-You-Go), as an `app` service in `n8n-automation-infra`'s compose stack, bound to `127.0.0.1`, Node 24 LTS |
+| Access | Cloudflare Tunnel + Access (email OTP, 30-day session) at `tutor.saepulmalik.my.id` |
+| Database | `english_tutor` in the VPS Postgres/pgvector container; `prisma migrate deploy` on start; Material sync on start |
+| Local dev | `pgvector/pgvector:0.8.1-pg17` container |
+| Deploy | `scripts/deploy.sh` (buildx arm64 → `docker save \| ssh` → `compose up -d app`) |
+| LLM | Groq `openai/gpt-oss-120b`, fallback Cloudflare `@cf/openai/gpt-oss-120b` on 429/5xx; scoring and nightly calls serial (8K TPM) |
+| STT | Groq `whisper-large-v3` with word timestamps; no fallback |
+| Pronunciation | Azure AI Speech PA (F0, daily audio budget); fallback wav2vec2 espeak phoneme model on the VPS |
+| AI code | LangChain only in `lib/ai.ts`; keys only in server env |
+| TTS | Browser `speechSynthesis` for reading aloud (unchanged); Listening audio from a self-hosted `tts` container (Kokoro-82M, MeloTTS EN-AU), fallback Cloudflare MeloTTS |
+| Audio | Learner recordings never stored. Generated Listening audio stored on a VPS volume as a rebuildable cache |
 | Cache | None |
-| Backups | Existing daily `pg_dumpall` on the VPS + daily rclone copy to Cloudflare R2 |
-| Quota | Save Groq `x-ratelimit-remaining-*` headers; show today's remaining quota on the dashboard |
-| Privacy | Groq Zero Data Retention turned on in the Groq console; Gemini free tier rejected because its inputs may be used and reviewed |
+| Backups | Daily `pg_dumpall` + rclone to Cloudflare R2 (Listening audio excluded) |
+| Quota | Groq rate-limit headers; Azure daily audio seconds; both on the dashboard |
+| Notifications | n8n → Telegram bot (reminder, job alerts, uptime) |
+| Privacy | Groq Zero Data Retention on; Gemini rejected. Azure real-time PA (Microsoft states data not stored); Listening TTS stays on the VPS |
 
-### Kept, changed and removed from v1 ([06](.scratch/zero-cost-toefl-tutor/issues/06-audit-kode-lama.md))
+### Kept, changed and removed
 
-- **Kept:** the reading component with click-to-translate and TTS, dashboard charts and streak (new scales), shadcn UI components.
-- **Changed:** reading question types to IELTS GT; writing to Task 1/Task 2 with IELTS criteria and Error Pattern tags; the generator into the nightly job; progress into band ranges per section.
-- **Removed:** signup and multi-user, XP, TOEFL and IELTS Academic scales, API keys in the browser, the local heuristic grammar fallback (the Groq → Cloudflare fallback covers outages), standalone lessons (their explanations live in Feedback per Error Pattern), `UserMemory`, duplicate content models, `prisma/seed.ts` content.
+- **Kept from v2:** everything in the MVP (variant A flow, Error Patterns + FSRS, nightly job, band ranges, Section 3 crawl).
+- **Changed in v3:** headline band from the Checkpoint; Speaking band can include a Pronunciation estimate; Section 3 quality check threshold; Reading block rotation; scorer prompts with official descriptor text.
+- **Reversed v2 decisions:** no separate diagnostic → weekly Checkpoint; lessons folded into Feedback → Material; no audio stored → generated Listening audio stored.
 
-### Dev tooling ([12](.scratch/zero-cost-toefl-tutor/issues/12-mcp-dev-tooling.md))
+### Dev tooling (unchanged)
 
-No project-level MCP. Context7 for library docs; the n8n MCP only while the SSH tunnel is open; `psql` through Bash for databases; Cloudflare setup by extending `setup-domain.sh` in `n8n-automation-infra`; UI checks with the built-in browser or Claude in Chrome.
+No project-level MCP. Context7 for library docs; n8n MCP only through the SSH tunnel; `psql` for databases; UI checks with the built-in browser or Claude in Chrome.
 
 ## Testing Decisions
 
-The v1 code has no tests. Approved with this PRD: test through the pure seams where a wrong answer silently corrupts the Weakness Profile, with no LLM or network in unit tests.
-
-- Band estimate: raw→band interpolation and the ranges, including the Task 2 weighting.
-- FSRS rating mapping: drill results and pattern occurrences → Again/Hard/Good, and card creation on first occurrence.
-- Practice Session composer: lowest-section rule, the 2-day Writing swap, the 2-due-pattern cap, the first-week rotation.
-- Fluency metrics from a fixed Whisper word-timestamp fixture.
-- LLM output parsing: unknown Error Pattern IDs fall to `other`; malformed JSON is rejected, not stored.
-- Quality check and stock top-up logic in the nightly job, with the LLM stubbed.
-
-A good test checks behaviour through these module interfaces, not implementation details. End-to-end browser tests are out of the MVP.
+v2's pure-seam strategy stays: no LLM or network in unit tests. New seams:
+- Band estimate: Listening curve from the official points; Checkpoint vs practice band choice; lowest section from Checkpoint when recent.
+- Weekly composer: fixtures for each lowest-section case, first week, missed days, Saturday Review backlog, Listening fallback to Reading.
+- Section 3 acceptance: ≥11/13 rule, group regeneration, renumbering.
+- Section 1–2 and Listening generation parsing and quality check with the LLM stubbed.
+- Quick Quiz: stock top-up, used-once marking, pattern events without FSRS ratings.
+- Material sync: upsert by slug, retire on removal, report auto-close on hash change; every taxonomy pattern has a Material.
+- Pronunciation: chunking Whisper words into ≤30 s requests; daily audio budget.
+- Calibration check: a local script, not a unit test, rerun on scorer changes.
 
 ## Out of Scope
 
-- Business English and job-interview practice (separate maps later; work and tech topics may appear in Speaking prompts).
-- TOEFL iBT and IELTS Academic as Target Exam.
-- Multi-user, signup, commercial use.
-- Native mobile apps (PWA only).
-- Vocabulary cards per word (after the MVP).
-- Storing audio recordings.
+- Business English and job-interview practice (separate map).
+- TOEFL iBT and IELTS Academic; multi-user, signup, commercial use; native apps.
+- Storing the Learner's recordings.
+- Per-word vocabulary cards (until Quick Quiz results show a need).
+- Real-time voice chat with an AI.
+- VOA/LibriVox dictation (later).
 
 ## Open Questions
 
-Carried from the map's "Not yet specified"; none blocks starting implementation.
-
-- **Listening:** needs two-speaker dialogues and monologues with varied accents (including Australian); TTS multi-speaker or LibriVox/VOA audio; whether it enters the MVP. Until then the Listening band shows "no data yet".
-- **Pronunciation scoring** (25% of the Speaking band): without it a Speaking 7 can't be claimed. Per-word/phoneme scoring and real-time voice chat are deferred.
-- **IELTS GT task types not yet placed:** Writing Task 1 letter register, Reading Section 1–2 practical texts, matching headings, completion word limits, Speaking Part 2 one-minute preparation. The session design reserves slots for them; their screens are designed during implementation.
-- **Band estimate details:** the exact Reading raw→band interpolation table and calibrating LLM scores against scored samples.
-- **Observability** beyond quota: error logs, uptime.
-- **PWA shape:** offline behaviour and a daily practice reminder.
-- **Long passages on a phone:** variant A's "text folded above the questions" was only tried with a short Section 1 text.
+All phase-2 decisions are made. What remains are pre-implementation spikes whose results can change parameters, not decisions:
+- ~1 h TTS prototype on the 2-OCPU VPS: Kokoro and MeloTTS speed for one 7-minute Part, AU voice quality, Cloudflare MeloTTS `lang` values.
+- Azure F0: latency per chunk, prosody on F0 without charge, behaviour when the quota runs out.
+- wav2vec2 fallback speed on 2 OCPU.
+- PWA install behind Cloudflare Access.
+- Real minutes per block over one week (Fase 0 data).
 
 ## Further Notes
 
-- Planning record: `.scratch/zero-cost-toefl-tutor/map.md` and `issues/01–14`. Research details live on local branches `research/*`; several are not pushed yet.
-- The infra repo `n8n-automation-infra` owns the compose stack, backups, domain setup and the crawler workflow JSON.
-- Next.js 16 has breaking changes from older versions; read `node_modules/next/dist/docs/` before writing Next code (`AGENTS.md`).
-- After approval: run `/to-tickets` on this PRD to cut implementation tickets.
+- Planning record: `.scratch/zero-cost-toefl-tutor/` (v2) and `.scratch/ielts-tutor-phase2/` (phase 2). Research notes live on local branches `research/*`; `research/sumber-audio-listening`, `research/penilaian-pronunciation` and `research/kalibrasi-skor` are not committed yet.
+- Next.js 16 has breaking changes; read `node_modules/next/dist/docs/` before writing Next code (`AGENTS.md`).
+- After approval: run `/to-tickets` on this PRD.

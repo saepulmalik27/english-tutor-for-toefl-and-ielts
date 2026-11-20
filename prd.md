@@ -130,7 +130,7 @@ Reverses v2's "lessons folded into Feedback": a one-line hint is too short to le
 
 ### Question bank (v2 [11](.scratch/zero-cost-toefl-tutor/issues/11-pipeline-bank-soal.md); phase 2 [07](.scratch/ielts-tutor-phase2/issues/07-tipe-soal-gt.md))
 
-Unchanged from v2: Wikipedia Good-article crawl for Section 3 only, LLM-generated everything else, no RAG, 1–2 ielts.org examples per question type in prompts, ielts.org samples kept private and unchanged, every app question original, nightly job in the app triggered by n8n, second-LLM quality check, report retires a question, one `Passage`/`Question` model.
+Unchanged from v2: Wikipedia Good-article crawl for Section 3 only, LLM-generated everything else, no RAG, 1–2 ielts.org examples per question type in prompts, ielts.org samples kept private and unchanged, every app question original **except the private official practice import below**, nightly job in the app triggered by n8n, second-LLM quality check, report retires a question, one `Passage`/`Question` model.
 
 Phase 2 changes:
 - **Section 3 quality check:** today a set is kept only if all 13 questions pass, so at ~95% per question only about half of the sets survive (2 of 5 passed on 2026-11-19; the per-passage reasons were not available when this was decided). Decided: keep a set when ≥11 of 13 pass, drop failed questions and renumber; if one type group loses more than 2, regenerate that group once in the same run. Store the last failure reason per passage (`lastGenerationError`) and per-question reasons in the job result.
@@ -140,6 +140,12 @@ Phase 2 changes:
 - **Writing Task 1 register:** code picks the register in rotation (formal, semi-formal, informal) and stores it on the question; not shown before writing; TA Feedback names the expected register.
 - **Speaking Part 2:** keeps the existing 1-minute preparation and notes; adds one short follow-up question generated with the cue card (lowest priority).
 - **New content kinds:** `quiz`, `listening_p1`–`listening_p4`; `reading_s1`/`reading_s2` get generators.
+- **Official practice import (new, decided 2026-11-20 by the Learner; reverses "every app question original" for this one source).** The Learner's own copy of the Official Cambridge Guide to IELTS (8 practice tests, General Training Reading and Writing included) may be imported into the question bank for private, single-Learner study. The Learner accepts the licence risk: the PDF in `reference/` carries third-party site watermarks, so it is likely not a first-party copy.
+  - **Storage:** same `Passage`/`Question` tables and the same `kind` values (`reading_s1`–`reading_s3`, `listening_p1`–`listening_p4`, `writing_t1`, `writing_t2`); official rows have `Passage.source = "official"` and `license = "Private import, not for redistribution"`. No schema change. The UI marks them "Soal resmi (impor pribadi)" and never as original; they are not retired by reports without a manual look.
+  - **Never leaves the private setup:** source text and imported rows are not committed (`reference/` and `content/private/` stay gitignored), not baked into a public image, and **excluded from the R2 backup** (`pg_dump` excludes `source = 'official'` rows); the Learner can instead choose to include them. They are not used as few-shot examples for generated questions (generated questions stay original).
+  - **Import is a one-off local script, not part of the nightly job.** The current Markdown in `reference/` is not trusted: two-column pages are interleaved, gap-fill blanks are garbled and answer keys cannot be matched to question numbers (checked 2026-11-20). The script re-extracts each test from the PDF with column detection, maps the answer key to question numbers, and stores a row only when its answer is verified.
+  - **Verification:** the LLM answers each imported question from the passage; any mismatch with the key goes to a list the Learner fixes by hand, and only verified questions are `active`. Maps and diagrams are images and are skipped until a screen exists for them. Listening items need audio, which the book's DVD-ROM does not provide here, so Listening imports are text-only (transcripts for review) unless the Learner supplies audio.
+  - **Use:** official General Training Reading sections and Writing Task 1 prompts are drawn into the daily Reading block and the Checkpoint before generated ones, alongside generated stock; they count toward band estimates like any question. Start with Reading GT of the 8 tests; widen only after the first verified test works.
 - **Nightly load:** Groq 8K TPM is already often exhausted; every new kind runs serially, with Cloudflare fallback. Per-night additions: Quick Quiz (~3 quizzes/day), ~1 Section 1–2 text, ~0.6 Listening Part (+TTS), Friday Checkpoint stock. The job logs duration per step.
 
 ### PWA, reminders and observability ([09](.scratch/ielts-tutor-phase2/issues/09-pwa-observabilitas.md))
@@ -167,7 +173,7 @@ Phase 2 changes:
 | TTS | Browser `speechSynthesis` for reading aloud (unchanged); Listening audio from a self-hosted `tts` container (Kokoro-82M, MeloTTS EN-AU), fallback Cloudflare MeloTTS |
 | Audio | Learner recordings never stored. Generated Listening audio stored on a VPS volume as a rebuildable cache |
 | Cache | None |
-| Backups | Daily `pg_dumpall` + rclone to Cloudflare R2 (Listening audio excluded) |
+| Backups | Daily `pg_dump` + rclone to Cloudflare R2 (Listening audio and `source = 'official'` rows excluded) |
 | Quota | Groq rate-limit headers; Azure daily audio seconds; both on the dashboard |
 | Notifications | n8n → Telegram bot (reminder, job alerts, uptime) |
 | Privacy | Groq Zero Data Retention on; Gemini rejected. Azure real-time PA (Microsoft states data not stored); Listening TTS stays on the VPS |
@@ -211,6 +217,7 @@ All phase-2 decisions are made. What remains are pre-implementation spikes whose
 - wav2vec2 fallback speed on 2 OCPU.
 - PWA install behind Cloudflare Access.
 - Real minutes per block over one week (Fase 0 data).
+- Official practice import: which PDF extraction tool keeps columns and answer keys intact, and how many of the 8 tests verify cleanly (spike on one General Training Reading test first).
 
 ## Further Notes
 
